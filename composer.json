@@ -1,0 +1,7 @@
+{
+    "require": {
+        "picqer/php-barcode-generator": "^2.2",
+        "laminas/laminas-barcode": "^2.11",
+        "rmccue/requests": "^2.0"
+    }
+}

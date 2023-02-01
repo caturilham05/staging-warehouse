@@ -1,0 +1,1 @@
+[15-Nov-2022 05:06:07 Asia/Bangkok] PHP Warning:  Cannot modify header information - headers already sent by (output started at /home/cekt5974/public_html/staging/vendor/composer/platform_check.php:19) in /home/cekt5974/public_html/staging/lib/core/Common.php on line 570
