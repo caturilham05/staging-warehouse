@@ -6,8 +6,7 @@ $this->load->helper('function_helper');
     <h3><i class="fa fa-barcode"></i> <?= $page_title; ?></h3>
     <p><?= lang('list_results'); ?></p>
 </div>
-<div class="row">
-   
+<div class="row">  
     <div class="col-lg-12">
         <div class="content-panel">
             <?php

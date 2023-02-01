@@ -69,17 +69,13 @@ class Address_books extends MY_Controller
         unset($_SESSION['message']);
         unset($_SESSION['error']);
     }
+
     $address_books = [
     	'location_id' => 0,
     	'name'        => '',
     	'phone'       => '',
     	'address'     => '',
     ];
-
-    // $data = [
-    // 	'page' => 'add',
-    // 	'row'  => $address_books
-    // ];
 
 		$config = array(
 			array(
@@ -103,6 +99,7 @@ class Address_books extends MY_Controller
 				'rules' => 'required'
 			)
 		);
+
 		$this->form_validation->set_rules($config);
 		$this->form_validation->set_message('is_unique', '<span style="color: #fff;"><b>{field} Sudah Terpakai</b></span>');
 		$this->form_validation->set_message('required', '<span style="color: #fff;"><b>{field} tidak boleh kosong</b></span>');
@@ -126,13 +123,72 @@ class Address_books extends MY_Controller
 		}
   }
 
-  public function process()
+  public function edit($id = 0)
+  {
+		$this->load->helper('function_helper');
+    if (!$this->Admin) {
+      $this->session->set_flashdata('warning', lang('access_denied'));
+      redirect('items');
+    }
+
+    $address_books = [
+    	'location_id' => 0,
+    	'name'        => '',
+    	'phone'       => '',
+    	'address'     => '',
+    ];
+
+		$config = array(
+			array(
+				'field' => 'name',
+				'label' => 'Nama Pengirim',
+				'rules' => 'required'
+			),
+			array(
+				'field' => 'phone',
+				'label' => 'Nomor HP',
+				'rules' => 'trim|required|min_length[5]|max_length[13]|numeric'
+			),
+			array(
+				'field' => 'location_id',
+				'label' => 'Pilih Daerah',
+				'rules' => 'trim|required',
+			),
+			array(
+				'field' => 'address',
+				'label' => 'Alamat Lengkap',
+				'rules' => 'required'
+			)
+		);
+
+		$this->form_validation->set_rules($config);
+		$this->form_validation->set_message('required', '<span style="color: #fff;"><b>{field} tidak boleh kosong</b></span>');
+		$this->form_validation->set_message('min_length', '<span style="color: #fff;"><b>{field} harus lebih dari 5 karakter</b></span>');
+		$this->form_validation->set_message('max_length', '<span style="color: #fff;"><b>{field} harus kurang dari 13 karakter</b></span>');
+		$this->form_validation->set_message('numeric', '<span style="color: #fff;"><b>{field} harus berupa angka / number</b></span>');
+		if ($this->form_validation->run() == false)
+		{
+	    $this->data['error']           = validation_errors() ? validation_errors() : $this->session->flashdata('error');
+	    $this->data['page_title']      = lang('Edit Address Books');
+	    $this->data['page']            = 'edit';
+	    $this->data['data']            = $this->address_books_model->fetch_address_books_id($id);
+	    $this->data['master_location'] = $this->address_books_model->fetch_master_location();
+	    $this->page_construct('address_books/edit', $this->data);
+		}
+		else
+		{
+			$this->process($id);
+		}
+
+  }
+
+  public function process($id = 0)
   {
 		$this->load->helper('function_helper');
 
+		$post = $this->input->post(null, true);
 		if (isset($_POST['add']))
 		{
-			$post   = $this->input->post(null, true);
 			$insert = $this->address_books_model->add_address_books($post);
 			if (empty($insert)) {
         $this->session->set_flashdata('error', lang("buku alamat gagal ditambahkan"));
@@ -140,6 +196,18 @@ class Address_books extends MY_Controller
 			}
 
       $this->session->set_flashdata('message', lang("buku alamat berhasil ditambahkan"));
+      redirect("address_books");
+		}
+
+		if (isset($_POST['edit']))
+		{
+			$update = $this->address_books_model->edit_address_books($post, $id);
+			if (empty($update)) {
+        $this->session->set_flashdata('error', lang("buku alamat gagal diupdate"));
+        redirect("address_books/edit/".$id);
+			}
+
+      $this->session->set_flashdata('message', lang("buku alamat berhasil diupdate"));
       redirect("address_books");
 		}
   }
