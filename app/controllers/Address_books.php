@@ -211,4 +211,20 @@ class Address_books extends MY_Controller
       redirect("address_books");
 		}
   }
+
+  public function delete($id = 0)
+  {
+    if (!$this->Admin) {
+      $this->session->set_flashdata('warning', lang('access_denied'));
+      redirect('address_books');
+    }
+    if ($this->address_books_model->delete_address_books($id)) {
+      $this->session->set_flashdata('message', lang("address_books_berhasil_dihapus"));
+      redirect("address_books");
+    } else {
+      $this->session->set_flashdata('error', lang("address_books_gagal_dihapus"));
+      redirect("address_books");
+    }
+  }
+
 }

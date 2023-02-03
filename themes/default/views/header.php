@@ -110,7 +110,9 @@
 								</a>
 								<ul class="dropdown-menu extended pull-right">
 									<div class="notify-arrow"></div>
-									<li><a href="<?= site_url('sales/index'); ?>"><i class="fa fa-cogs"></i> <?= lang('List Sales'); ?></a></li>
+									<li><a href="<?= site_url('sales/index'); ?>"><i class="fa fa-list"></i> <?= lang('Sales List'); ?></a></li>
+									<li><a href="<?= site_url('sales/sales_add_manually_view'); ?>"><i class="fa fa-plus"></i> <?= lang('Sales Add Manually'); ?></a></li>
+									<li><a href="<?= site_url('sales/sales_add_import_excel_view'); ?>"><i class="fa fa-upload"></i> <?= lang('Sales Add Import Excel'); ?></a></li>
 									<li id="sales_print_labels">
 									<a onclick="window.open('<?= site_url('sales/print_labels'); ?>', 'pos_popup', 'width=900,height=600,menubar=yes,scrollbars=yes,status=no,resizable=yes,screenx=0,screeny=0'); return false;" href="#">
 										<i class="fa fa-print"></i> <?= lang('Print Shipping Label'); ?>

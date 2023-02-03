@@ -30,6 +30,7 @@ class Sales_model extends CI_Model
 
     public function insertBatch(string $data)
     {
+        $this->load->helper('function_helper');
         $this->db->trans_begin();
 
         $api = Api::get($data);
@@ -110,8 +111,12 @@ class Sales_model extends CI_Model
                     'product_id' => $p,
                     'product_quantity' => $product_quantity[$key],
                 ];
+                print_custom($data_post);
+                die();
             }
         }
+
+
       
 
         $this->db->insert_batch('sales', $data_post);

@@ -16,7 +16,7 @@ class Sales extends MY_Controller
         }
 
         $this->load->library(['form_validation']);
-        $this->load->model(['items_model', 'warehouses_model', 'sales_model']);
+        $this->load->model(['items_model', 'warehouses_model', 'sales_model', 'address_books_model']);
 
         ini_set('display_errors', 1);
     }
@@ -503,5 +503,124 @@ class Sales extends MY_Controller
         header('Cache-Control: max-age=0');
         $writer = new Xlsx($spreadsheet);
         $writer->save('php://output');
+    }
+
+    public function sales_add_manually_view()
+    {
+        $this->load->helper('function_helper');
+        $post = [
+            'order_no'             => '',
+            'awb_no'               => '',
+            'warehouse_id'         => 0,
+            // 'courier'              => '',
+            // 'service'              => '',
+            // 'type'                 => '',
+            // 'status'               => '',
+            // 'package_price'        => 0,
+            'shipper_id'           => 0,
+            // 'shipping_price'       => 0,
+            // 'address_book_id'      => 0,
+            // 'shipper_name'         => '',
+            // 'shipper_phone'        => '',
+            // 'shipper_address'      => '',
+            // 'shipper_city'         => '',
+            // 'shipper_subdistrict'  => '',
+            // 'shipper_zip_code'     => '',
+            // 'receiver_name'        => '',
+            // 'receiver_phone'       => '',
+            // 'receiver_address'     => '',
+            // 'receiver_city'        => '',
+            // 'receiver_subdistrict' => '',
+            // 'receiver_zip_code'    => 0,
+            // 'goods_description'    => '',
+            // 'weight'               => 0,
+            // 'length'               => 0,
+            // 'shipping_note'        => '',
+            // 'last_tracking_status' => '',
+            // 'product_id'           => 0,
+            // 'product_quantity'     => 0
+        ];
+
+        $config = array(
+            array(
+                'field' => 'order_no',
+                'label' => 'Order Invoice',
+                'rules' => 'trim|required|is_unique[sales.order_no]'
+            ),
+            array(
+                'field' => 'awb_no',
+                'label' => 'Airway Bill',
+                'rules' => 'trim|required|is_unique[sales.awb_no]'
+            ),
+            array(
+                'field' => 'warehouse_id',
+                'label' => 'Warehouse',
+                'rules' => 'required'
+            ),
+            array(
+                'field' => 'shipper_id',
+                'label' => 'Shipper',
+                'rules' => 'required'
+            ),
+            // array(
+            //     'field' => 'courier',
+            //     'label' => 'Kurir',
+            //     'rules' => 'trim|required'
+            // ),
+            // array(
+            //     'field' => 'receiver_name',
+            //     'label' => 'Nama Penerima',
+            //     'rules' => 'trim|required'
+            // ),
+            // array(
+            //     'field' => 'receiver_phone',
+            //     'label' => 'Nomor HP Penerima',
+            //     'rules' => 'trim|required'
+            // ),
+        );
+
+        $this->form_validation->set_rules($config);
+        $this->form_validation->set_message('is_unique', '<span style="color: #fff;"><b>{field} Sudah Terpakai</b></span>');
+        $this->form_validation->set_message('required', '<span style="color: #fff;"><b>{field} tidak boleh kosong</b></span>');
+        if ($this->form_validation->run() == false)
+        {        
+            set_cookie('ci_csrf_token', 'ci_csrf_token', 128000);
+            $this->data['error']         = validation_errors() ? validation_errors() : $this->session->flashdata('error');
+            $this->data['warehouses']    = $this->warehouses_model->fetch_warehouses();
+            $this->data['address_books'] = $this->address_books_model->fetch_address_books();
+            $this->data['page_title']    = lang('Sales Add Manually');
+            $this->page_construct('sales/add_manually', $this->data);
+
+            if (!empty($_SESSION['message'])) {
+              unset($_SESSION['message']);
+            }
+        }
+        else
+        {
+            $this->process();
+        }
+
+    }
+
+    public function sales_add_import_excel_view()
+    {
+        $this->load->helper('function_helper');
+        set_cookie('ci_csrf_token', 'ci_csrf_token', 128000);
+        $this->data['error']         = validation_errors() ? validation_errors() : $this->session->flashdata('error');
+        $this->data['warehouses']    = $this->warehouses_model->fetch_warehouses();
+        $this->data['address_books'] = $this->sales_address_books();
+        $this->data['page_title']    = lang('Sales Add Import Excel');
+        $this->page_construct('sales/add_import_excel', $this->data);
+
+        if (!empty($_SESSION['message'])) {
+          unset($_SESSION['message']);
+        }        
+    }
+
+    public function process()
+    {
+        $this->load->helper('function_helper');
+        // $post = $this->input->post(null, true);
+        print_custom([$_POST]);
     }
 }

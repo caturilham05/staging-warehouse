@@ -2,7 +2,6 @@
 <div class="">
     <h3><i class="fa fa-arrow-circle-down"></i> <?= $page_title; ?></h3>
     <p><?= lang('enter_info'); ?></p>
-
 </div>
 <div class="row">
     <div class="col-lg-12">
