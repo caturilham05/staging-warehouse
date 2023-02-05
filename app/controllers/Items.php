@@ -96,6 +96,17 @@ class Items extends MY_Controller
         }
     }
 
+    public function get_items_code()
+    {
+        $code  = !empty($_GET['code']) ? $_GET['code'] : 0;
+        $query = $this->items_model->getItemByCode($code);
+        if (!empty($query)) {
+            echo json_encode(['status' => true, 'data' => $query, 'message' => 'success get data']);
+        } else {
+            echo json_encode(['status' => false, 'message' => 'failed get data']);
+        }
+    }
+
     function alerts()
     {
         $data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');

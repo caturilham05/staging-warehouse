@@ -103,13 +103,34 @@ class Items_model extends CI_Model {
     }
 
     public function fetch_items($limit, $start, $category_id = NULL) {
-        $this->db->select('name, code, barcode_symbology')
+        $this->db->select('id, name, code, barcode_symbology')
         ->limit($limit, $start)->order_by("code", "asc");
         if ($category_id) {
             $this->db->where('category_id', $category_id);
         }
         $q = $this->db->get("items");
 
+        if ($q->num_rows() > 0) {
+            foreach ($q->result() as $row) {
+                $data[] = $row;
+            }
+            return $data;
+        }
+        return false;
+    }
+
+    public function fetch_items_all($limit = 0, $start = 0)
+    {
+        if ($limit > 0 && $start > 0) {
+          $this->db->limit($limit, $start);
+        }
+
+        $this->db->select([
+            'id',
+            'name',
+            'code'
+        ])->order_by('name', 'ASC');
+        $q = $this->db->get("items");
         if ($q->num_rows() > 0) {
             foreach ($q->result() as $row) {
                 $data[] = $row;

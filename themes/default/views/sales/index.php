@@ -325,14 +325,15 @@
                 {
 
                     "render": (data, type, row, meta) => {
+                        let cod_value = row[16] === null ? 0 : row[16];
                         return `
                         
                         
                     <!-- jika cod_value != nol, maka cod_value dipake , otherwise package_price dipake -->
                         
-                        <p style="font-size:14px;font-weight:bold;"> ${row[16] != 0 ? 
+                        <p style="font-size:14px;font-weight:bold;"> ${cod_value != 0 ? 
                             //indonesia rupiah
-                            'Rp' + row[16].toString().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1.") :
+                            'Rp' + cod_value.toString().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1.") :
                             'Rp' + row[12].toString().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1.")} </p>
                          `;
                     }

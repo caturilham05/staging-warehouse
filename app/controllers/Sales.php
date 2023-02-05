@@ -17,6 +17,7 @@ class Sales extends MY_Controller
 
         $this->load->library(['form_validation']);
         $this->load->model(['items_model', 'warehouses_model', 'sales_model', 'address_books_model']);
+        $this->load->helper('function_helper');
 
         ini_set('display_errors', 1);
     }
@@ -509,36 +510,27 @@ class Sales extends MY_Controller
     {
         $this->load->helper('function_helper');
         $post = [
-            'order_no'             => '',
-            'awb_no'               => '',
-            'warehouse_id'         => 0,
-            // 'courier'              => '',
-            // 'service'              => '',
-            // 'type'                 => '',
-            // 'status'               => '',
-            // 'package_price'        => 0,
-            'shipper_id'           => 0,
-            // 'shipping_price'       => 0,
-            // 'address_book_id'      => 0,
-            // 'shipper_name'         => '',
-            // 'shipper_phone'        => '',
-            // 'shipper_address'      => '',
-            // 'shipper_city'         => '',
-            // 'shipper_subdistrict'  => '',
-            // 'shipper_zip_code'     => '',
-            // 'receiver_name'        => '',
-            // 'receiver_phone'       => '',
-            // 'receiver_address'     => '',
-            // 'receiver_city'        => '',
-            // 'receiver_subdistrict' => '',
-            // 'receiver_zip_code'    => 0,
-            // 'goods_description'    => '',
-            // 'weight'               => 0,
-            // 'length'               => 0,
-            // 'shipping_note'        => '',
-            // 'last_tracking_status' => '',
-            // 'product_id'           => 0,
-            // 'product_quantity'     => 0
+            'order_no'               => '',
+            'awb_no'                 => '',
+            'warehouse_id'           => 0,
+            'shipper_id'             => 0,
+            'courier'                => '',
+            'service'                => '',
+            'type'                   => '',
+            'package_price'          => 0,
+            'shipping_price'         => 0,
+            'shipping_note'          => '',
+            'receiver_name'          => '',
+            'receiver_phone'         => '',
+            'receiver_address'       => '',
+            'receiver_city'          => '',
+            'receiver_subdistrict'   => '',
+            'receiver_zip_code'      => 0,
+            'goods_description'      => '',
+            'weight'                 => 0,
+            'dimension_size'         => 0,
+            'product_code'             => 0,
+            'product_quantity'       => 0
         ];
 
         $config = array(
@@ -562,33 +554,106 @@ class Sales extends MY_Controller
                 'label' => 'Shipper',
                 'rules' => 'required'
             ),
-            // array(
-            //     'field' => 'courier',
-            //     'label' => 'Kurir',
-            //     'rules' => 'trim|required'
-            // ),
-            // array(
-            //     'field' => 'receiver_name',
-            //     'label' => 'Nama Penerima',
-            //     'rules' => 'trim|required'
-            // ),
-            // array(
-            //     'field' => 'receiver_phone',
-            //     'label' => 'Nomor HP Penerima',
-            //     'rules' => 'trim|required'
-            // ),
+            array(
+                'field' => 'courier',
+                'label' => 'Courier Name',
+                'rules' => 'required'
+            ),
+            array(
+                'field' => 'service',
+                'label' => 'Service',
+                'rules' => 'required'
+            ),
+            array(
+                'field' => 'type',
+                'label' => 'Type',
+                'rules' => 'required'
+            ),
+            array(
+                'field' => 'package_price',
+                'label' => 'Package Price',
+                'rules' => 'required|numeric'
+            ),
+            array(
+                'field' => 'shipping_price',
+                'label' => 'Shipping Price',
+                'rules' => 'required|numeric'
+            ),
+            array(
+                'field' => 'receiver_name',
+                'label' => 'Receiver Name',
+                'rules' => 'required'
+            ),
+            array(
+                'field' => 'receiver_phone',
+                'label' => 'Receiver Phone',
+                'rules' => 'trim|required|min_length[5]|max_length[13]|numeric|is_unique[sales.receiver_phone]'
+            ),
+            array(
+                'field' => 'receiver_city',
+                'label' => 'Receiver City',
+                'rules' => 'required'
+            ),
+            array(
+                'field' => 'receiver_subdistrict',
+                'label' => 'Receiver Subdistrict',
+                'rules' => 'required'
+            ),
+            array(
+                'field' => 'receiver_zip_code',
+                'label' => 'Receiver Zip Code',
+                'rules' => 'required'
+            ),
+            array(
+                'field' => 'receiver_address',
+                'label' => 'Receiver Address',
+                'rules' => 'required'
+            ),
+            array(
+                'field' => 'shipping_note',
+                'label' => 'Shipping Note',
+                'rules' => 'required'
+            ),
+            array(
+                'field' => 'product_code[]',
+                'label' => 'Product',
+                'rules' => 'required'
+            ),
+            array(
+                'field' => 'product_quantity[]',
+                'label' => 'Qty',
+                'rules' => 'required|numeric'
+            ),
+            array(
+                'field' => 'weight[]',
+                'label' => 'Weight (KG)',
+                'rules' => 'required|numeric'
+            ),
+            array(
+                'field' => 'dimension_size[]',
+                'label' => 'Length',
+                'rules' => 'required'
+            ),
+            array(
+                'field' => 'goods_description[]',
+                'label' => 'Goods Description',
+                'rules' => 'required'
+            ),
         );
 
         $this->form_validation->set_rules($config);
         $this->form_validation->set_message('is_unique', '<span style="color: #fff;"><b>{field} Sudah Terpakai</b></span>');
         $this->form_validation->set_message('required', '<span style="color: #fff;"><b>{field} tidak boleh kosong</b></span>');
         if ($this->form_validation->run() == false)
-        {        
+        {   
             set_cookie('ci_csrf_token', 'ci_csrf_token', 128000);
             $this->data['error']         = validation_errors() ? validation_errors() : $this->session->flashdata('error');
             $this->data['warehouses']    = $this->warehouses_model->fetch_warehouses();
             $this->data['address_books'] = $this->address_books_model->fetch_address_books();
+            $this->data['items']         = $this->items_model->fetch_items_all();
             $this->data['page_title']    = lang('Sales Add Manually');
+            // $this->data['alert']         = $alert;
+            // $this->data['hidden_form']   = $hidden_form;
             $this->page_construct('sales/add_manually', $this->data);
 
             if (!empty($_SESSION['message'])) {
@@ -601,26 +666,129 @@ class Sales extends MY_Controller
         }
 
     }
+    
+    public function process()
+    {
+        $this->load->helper('function_helper');
+        $post = $this->input->post(null, true);
+        if (isset($_POST['add']))
+        {
+            $insert = $this->sales_model->add_sales_manually($post);
+
+            if (empty($insert))
+            {
+                $this->session->set_flashdata('error', lang("Order gagal ditambahkan"));
+                redirect("sales");
+                return false;
+            }
+
+            $this->session->set_flashdata('message', lang("Order berhasil ditambahkan"));
+            redirect('sales');
+            return true;
+        }
+    }
 
     public function sales_add_import_excel_view()
     {
-        $this->load->helper('function_helper');
         set_cookie('ci_csrf_token', 'ci_csrf_token', 128000);
         $this->data['error']         = validation_errors() ? validation_errors() : $this->session->flashdata('error');
         $this->data['warehouses']    = $this->warehouses_model->fetch_warehouses();
-        $this->data['address_books'] = $this->sales_address_books();
         $this->data['page_title']    = lang('Sales Add Import Excel');
         $this->page_construct('sales/add_import_excel', $this->data);
 
         if (!empty($_SESSION['message'])) {
           unset($_SESSION['message']);
-        }        
+        }
+        
+        // if (is_uploaded_file($_FILES['sales_import_excel']['tmp_name']))
+        // {
+        //     print_custom([$_POST, $_FILES]);        
+        // }
     }
 
-    public function process()
+    public function upload_config($path)
     {
-        $this->load->helper('function_helper');
-        // $post = $this->input->post(null, true);
-        print_custom([$_POST]);
+        if (!is_dir($path)) mkdir($path, 0777, TRUE);       
+        $config['upload_path']      = './'.$path;       
+        $config['allowed_types']    = 'csv|CSV|xlsx|XLSX|xls|XLS';
+        $config['max_filename']     = '255';
+        $config['encrypt_name']     = TRUE;
+        $config['max_size']         = 4096; 
+        $this->load->library('upload', $config);
+    }
+
+    public function proses_import_excel()
+    {
+        $path = 'uploads/import_excel/';
+        $json = [];
+        $this->upload_config($path);
+        if (!$this->upload->do_upload('sales_import_excel'))
+        {
+            $json = [
+                'error_message' => 'error',
+            ];
+        }
+        else
+        {
+            $file_data = $this->upload->data();
+            $file_name = $path.$file_data['file_name'];
+            $arr_file  = explode('.', $file_name);
+            $extension = end($arr_file);
+
+            if ('csv' == $extension)
+            {
+                $reader = new \PhpOffice\PhpSpreadsheet\Reader\Csv();
+            }
+            else
+            {
+                $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
+            }
+
+            $spreadsheet = $reader->load($file_name);
+            print_custom([$reader, $file_name, $spreadsheet]);
+            return;
+            $sheet_data  = $spreadsheet->getActiveSheet()->toArray();
+            $list        = [];
+
+
+            foreach($sheet_data as $key => $val)
+            {
+                if($key != 0) {
+                    $result     = $this->user->get(["country_code" => $val[2], "mobile" => $val[3]]);
+                    if($result) {
+                    } else {
+                        $list [] = [
+                            'name'                  => $val[0],
+                            'country_code'          => $val[1],
+                            'mobile'                => $val[2],
+                            'email'                 => $val[3],
+                            'city'                  => $val[4],
+                            'ip_address'            => $this->ip_address,
+                            'created_at'            => $this->datetime,
+                            'status'                => "1",
+                        ];
+                    }
+                }
+            }
+            if(file_exists($file_name))
+                unlink($file_name);
+            if(count($list) > 0) {
+                $result     = $this->user->add_batch($list);
+                if($result) {
+                    $json = [
+                        'success_message'   => 'error',
+                    ];
+                } else {
+                    $json = [
+                        'error_message'     => 'error'
+                    ];
+                }
+            } else {
+                $json = [
+                    'error_message' => showErrorMessage("No new record is found."),
+                ];
+            }
+        }
+        echo json_encode($json);
     }
 }
