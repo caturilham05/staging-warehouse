@@ -113,5 +113,14 @@ class Address_books_model extends CI_Model
         }
         return FALSE;
     }
+
+    public function address_books_by_id($name = '')
+    {
+        $q = $this->db->get_where('address_books', array('name' => $name), 1);
+        if ($q->num_rows() > 0) {
+            return $q->row_array();
+        }
+        return FALSE;
+    }
 }
 

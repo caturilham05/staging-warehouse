@@ -724,9 +724,9 @@ class Sales extends MY_Controller
         $this->upload_config($path);
         if (!$this->upload->do_upload('sales_import_excel'))
         {
-            $json = [
-                'error_message' => 'error',
-            ];
+            $this->session->set_flashdata('error', lang("Order gagal ditambahkan"));
+            redirect("sales/sales_add_import_excel_view");
+            return false;
         }
         else
         {
@@ -745,50 +745,71 @@ class Sales extends MY_Controller
             }
 
             $spreadsheet = $reader->load($file_name);
-            print_custom([$reader, $file_name, $spreadsheet]);
-            return;
             $sheet_data  = $spreadsheet->getActiveSheet()->toArray();
             $list        = [];
+            $invoice     = invoice_generate();
 
-
-            foreach($sheet_data as $key => $val)
+            foreach($sheet_data as $key => $value)
             {
-                if($key != 0) {
-                    $result     = $this->user->get(["country_code" => $val[2], "mobile" => $val[3]]);
-                    if($result) {
-                    } else {
-                        $list [] = [
-                            'name'                  => $val[0],
-                            'country_code'          => $val[1],
-                            'mobile'                => $val[2],
-                            'email'                 => $val[3],
-                            'city'                  => $val[4],
-                            'ip_address'            => $this->ip_address,
-                            'created_at'            => $this->datetime,
-                            'status'                => "1",
-                        ];
-                    }
+                if($key != 0)
+                {
+                    $address_book    = $this->address_books_model->address_books_by_id($value[7]);
+                    $master_location = $this->db->get_where('master_locations', ['id' => $address_book['location_id']], 1)->row_array();
+                    $list[]          = [
+                        'warehouse_id'         => $this->warehouses_model->getWarehouseByName($value[0]),
+                        'order_no'             => $invoice,
+                        'awb_no'               => $value[1],
+                        'courier'              => $value[2],
+                        'service'              => $value[3],
+                        'type'                 => $value[4],
+                        'package_price'        => $value[5],
+                        'shipping_price'       => $value[6],
+                        'shipper_id'           => $address_book['id'],
+                        'shipper_name'         => $value[7],
+                        'shipper_phone'        => $address_book['phone'],
+                        'shipper_address'      => $address_book['address'],
+                        'shipper_city'         => $master_location['title'],
+                        'shipper_subdistrict'  => $master_location['detail'],
+                        'shipper_zip_code'     => $master_location['postcode'],
+                        'receiver_name'        => $value[8],
+                        'receiver_phone'       => $value[9],
+                        'receiver_address'     => $value[10],
+                        'receiver_city'        => $value[11],
+                        'receiver_subdistrict' => $value[12],
+                        'receiver_zip_code'    => $value[13],
+                        'goods_description'    => $value[14],
+                        'weight'               => $value[15],
+                        'dimension_size'       => $value[16],
+                        'shipping_note'        => $value[17],
+                        'last_tracking_status' => $value[18],
+                        'product_id'           => $value[19],
+                        'product_quantity'     => $value[20],
+                    ];
                 }
             }
-            if(file_exists($file_name))
-                unlink($file_name);
-            if(count($list) > 0) {
-                $result     = $this->user->add_batch($list);
-                if($result) {
-                    $json = [
-                        'success_message'   => 'error',
-                    ];
-                } else {
-                    $json = [
-                        'error_message'     => 'error'
-                    ];
+
+            if(file_exists($file_name)) unlink($file_name);
+
+            if(count($list) > 0)
+            {
+                $insert = $this->sales_model->add_sales_manually($list, 1);
+                if (empty($insert))
+                {
+                    $this->session->set_flashdata('error', lang("Order gagal ditambahkan"));
+                    redirect("sales/sales_add_import_excel_view");
+                    return false;
                 }
-            } else {
-                $json = [
-                    'error_message' => showErrorMessage("No new record is found."),
-                ];
+
+                $this->session->set_flashdata('message', lang("Order berhasil ditambahkan"));
+                redirect("sales");
+                return true;
+            }
+            else
+            {
+                $this->session->set_flashdata('error', lang("Order gagal ditambahkan"));
+                redirect("sales/sales_add_import_excel_view");
+                return false;
             }
         }
-        echo json_encode($json);
     }
 }

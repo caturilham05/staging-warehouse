@@ -101,4 +101,13 @@ class Warehouses_model extends CI_Model
         }
         return false;
     }
+
+    public function getWarehouseByName($name = '')
+    {
+        $q = $this->db->get_where('warehouses', array('name' => $name), 1);
+        if ($q->num_rows() > 0) {
+            return $q->row()->id;
+        }
+        return FALSE;
+    }
 }
