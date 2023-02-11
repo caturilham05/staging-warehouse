@@ -12,36 +12,31 @@ class Warehouses extends MY_Controller
             redirect('logout');
         }
 
-        $this->load->library('form_validation');
-        $this->load->model('warehouses_model');
+        $this->load->library(['form_validation', 'pagination']);
+        $this->load->model(['warehouses_model', 'items_model']);
+        $this->load->helper('function_helper');
 
         ini_set('display_errors', 1);
     }
 
     public function index()
     {
-        $this->data['error'] = validation_errors() ? validation_errors() : $this->session->flashdata('error');
+        $this->data['error']      = validation_errors() ? validation_errors() : $this->session->flashdata('error');
         $this->data['page_title'] = lang('Warehouses');
         $this->page_construct('warehouses/index', $this->data);
         
-        if(!empty($_SESSION['message'])){         unset($_SESSION['message']); }
+        if(!empty($_SESSION['message'])){unset($_SESSION['message']); }
     }
 
-    public function get_warehouses($alerts = NULL)
+    public function get_warehouses()
     {
-        $links = "<div class='text-center'>";
-        $links .= "<div class='btn-group btn-group-justified' role='group'><div class='btn-group' role='group'><a onclick=\"window.open('" . site_url('items/single_barcode/$1') . "', 'pos_popup', 'width=900,height=600,menubar=yes,scrollbars=yes,status=no,resizable=yes,screenx=0,screeny=0'); return false;\" href='#' title='" . lang('print_barcodes') . "' class='tip btn btn-default btn-xs'><i class='fa fa-print'></i></a></div> <div class='btn-group' role='group'><a onclick=\"window.open('" . site_url('items/single_label/$1') . "', 'pos_popup', 'width=900,height=600,menubar=yes,scrollbars=yes,status=no,resizable=yes,screenx=0,screeny=0'); return false;\" href='#' title='" . lang('print_labels') . "' class='tip btn btn-default btn-xs'><i class='fa fa-print'></i></a></div>";
-        if ($this->Admin) {
-            $links .= " <div class='btn-group' role='group'><a class=\"btn btn-warning btn-xs tip\" title='" . lang("edit_warehouse") . "' href='" . site_url('warehouses/edit/$1') . "'><i class=\"fa fa-edit\"></i></a></div> <div class='btn-group' role='group'><a href='#' class='btn btn-danger btn-xs tip po' title='<b>" . lang("delete_item") . "</b>' data-content=\"<p>" . lang('r_u_sure') . "</p><a class='btn btn-danger po-delete' href='" . site_url('warehouses/delete/$1') . "'>" . lang('i_m_sure') . "</a> <button class='btn po-close'>" . lang('no') . "</button>\"  rel='popover'><i class=\"fa fa-trash-o\"></i></a></div>";
-        }
-        $links .= "</div>";
-
         $this->load->library('datatables');
-        $this->datatables
-            ->select("id , name")->from('warehouses');
+        $this->datatables->select('warehouses.name AS warehouse_name, items.code, items.name AS product_name, item_warehouse.quantity');
 
-        $this->datatables->add_column("Actions", $links, "id");
-        // $this->datatables->unset_column("id");
+        $this->datatables->from('item_warehouse');
+        $this->datatables->join('warehouses', 'item_warehouse.warehouse_id = warehouses.id');
+        $this->datatables->join('items', 'item_warehouse.item_id = items.id');
+        $this->datatables->add_column("Actions", '', "id");
         echo $this->datatables->generate();
     }
 
@@ -245,6 +240,7 @@ class Warehouses extends MY_Controller
 
     public function delete($id = NULL)
     {
+        return false;
         if (!$this->Admin) {
             $this->session->set_flashdata('warning', lang('access_denied'));
             redirect('warehouses');

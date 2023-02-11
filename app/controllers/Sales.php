@@ -18,6 +18,7 @@ class Sales extends MY_Controller
         $this->load->library(['form_validation']);
         $this->load->model(['items_model', 'warehouses_model', 'sales_model', 'address_books_model']);
         $this->load->helper('function_helper');
+        $this->config->load('config_api');
 
         ini_set('display_errors', 1);
     }
@@ -104,6 +105,7 @@ class Sales extends MY_Controller
             ->group_by('sales.awb_no')
             ->where('sales.deleted_at', NULL)
             ->where('warehouse_id', $this->session->userdata('warehouse_id'));
+            // ->where('sales.status !=', 'process');
         } else {
             $query = $this->datatables
             ->select("sales.id, order_no, awb_no, no_referensi, courier, status, service, type, created_date, dispatch_date, delivered_date, returned_date, package_price, insurance, shipping_price, shipping_cashback, cod_value, cod_fee, cod_disbursement, shipper_name, shipper_phone, shipper_address, shipper_city, shipper_subdistrict, shipper_zip_code, receiver_name, receiver_phone, receiver_address, receiver_city, receiver_subdistrict, receiver_zip_code, goods_description, quantity, weight, dimension_size, shipping_note, last_tracking_status, status_packing,group_concat(concat(" . $this->db->dbprefix('items') . ".name) SEPARATOR '<br>') as product_name," . $this->db->dbprefix('warehouses') . '.name as warehouse_name')
@@ -112,6 +114,7 @@ class Sales extends MY_Controller
             ->join('items', 'items.code=sales.product_id', 'left')
             ->group_by('sales.awb_no')
             ->where('sales.deleted_at', NULL);
+            // ->where('sales.status !=', 'process');
         }
 
         if($_POST['filter'] != '') {
@@ -509,160 +512,230 @@ class Sales extends MY_Controller
     public function sales_add_manually_view()
     {
         $this->load->helper('function_helper');
-        $post = [
-            'order_no'               => '',
-            'awb_no'                 => '',
-            'warehouse_id'           => 0,
-            'shipper_id'             => 0,
-            'courier'                => '',
-            'service'                => '',
-            'type'                   => '',
-            'package_price'          => 0,
-            'shipping_price'         => 0,
-            'shipping_note'          => '',
-            'receiver_name'          => '',
-            'receiver_phone'         => '',
-            'receiver_address'       => '',
-            'receiver_city'          => '',
-            'receiver_subdistrict'   => '',
-            'receiver_zip_code'      => 0,
-            'goods_description'      => '',
-            'weight'                 => 0,
-            'dimension_size'         => 0,
-            'product_code'             => 0,
-            'product_quantity'       => 0
-        ];
+        $invoice = !empty($_GET['invoice']) ? $_GET['invoice'] : '';
 
-        $config = array(
-            array(
-                'field' => 'order_no',
-                'label' => 'Order Invoice',
-                'rules' => 'trim|required|is_unique[sales.order_no]'
-            ),
-            array(
-                'field' => 'awb_no',
-                'label' => 'Airway Bill',
-                'rules' => 'trim|required|is_unique[sales.awb_no]'
-            ),
-            array(
-                'field' => 'warehouse_id',
-                'label' => 'Warehouse',
-                'rules' => 'required'
-            ),
-            array(
-                'field' => 'shipper_id',
-                'label' => 'Shipper',
-                'rules' => 'required'
-            ),
-            array(
-                'field' => 'courier',
-                'label' => 'Courier Name',
-                'rules' => 'required'
-            ),
-            array(
-                'field' => 'service',
-                'label' => 'Service',
-                'rules' => 'required'
-            ),
-            array(
-                'field' => 'type',
-                'label' => 'Type',
-                'rules' => 'required'
-            ),
-            array(
-                'field' => 'package_price',
-                'label' => 'Package Price',
-                'rules' => 'required|numeric'
-            ),
-            array(
-                'field' => 'shipping_price',
-                'label' => 'Shipping Price',
-                'rules' => 'required|numeric'
-            ),
-            array(
-                'field' => 'receiver_name',
-                'label' => 'Receiver Name',
-                'rules' => 'required'
-            ),
-            array(
-                'field' => 'receiver_phone',
-                'label' => 'Receiver Phone',
-                'rules' => 'trim|required|min_length[5]|max_length[13]|numeric|is_unique[sales.receiver_phone]'
-            ),
-            array(
-                'field' => 'receiver_city',
-                'label' => 'Receiver City',
-                'rules' => 'required'
-            ),
-            array(
-                'field' => 'receiver_subdistrict',
-                'label' => 'Receiver Subdistrict',
-                'rules' => 'required'
-            ),
-            array(
-                'field' => 'receiver_zip_code',
-                'label' => 'Receiver Zip Code',
-                'rules' => 'required'
-            ),
-            array(
-                'field' => 'receiver_address',
-                'label' => 'Receiver Address',
-                'rules' => 'required'
-            ),
-            array(
-                'field' => 'shipping_note',
-                'label' => 'Shipping Note',
-                'rules' => 'required'
-            ),
-            array(
-                'field' => 'product_code[]',
-                'label' => 'Product',
-                'rules' => 'required'
-            ),
-            array(
-                'field' => 'product_quantity[]',
-                'label' => 'Qty',
-                'rules' => 'required|numeric'
-            ),
-            array(
-                'field' => 'weight[]',
-                'label' => 'Weight (KG)',
-                'rules' => 'required|numeric'
-            ),
-            array(
-                'field' => 'dimension_size[]',
-                'label' => 'Length',
-                'rules' => 'required'
-            ),
-            array(
-                'field' => 'goods_description[]',
-                'label' => 'Goods Description',
-                'rules' => 'required'
-            ),
-        );
+        if (!empty($invoice)) /*setelah pembuatan invoice tahap pertama, untuk menampilkan form pengiriman ekspedisi*/
+        {
+            $sales_inv = $this->sales_model->getSalesbyInvoice($invoice);
+            print_custom($sales_inv);
+            $config = array(
+                array(
+                    'field' => 'order_no',
+                    'label' => 'Order Invoice',
+                    'rules' => 'trim|required|is_unique[sales.order_no]'
+                ),
+                // array(
+                //     'field' => 'awb_no',
+                //     'label' => 'Airway Bill',
+                //     'rules' => 'trim|required|is_unique[sales.awb_no]'
+                // ),
+                array(
+                    'field' => 'warehouse_id',
+                    'label' => 'Warehouse',
+                    'rules' => 'required'
+                ),
+                array(
+                    'field' => 'shipper_id',
+                    'label' => 'Shipper',
+                    'rules' => 'required'
+                ),
+                array(
+                    'field' => 'shipper_city_code',
+                    'label' => 'Shipper Origin Address',
+                    'rules' => 'required'
+                ),
+                array(
+                    'field' => 'courier',
+                    'label' => 'Courier Name',
+                    'rules' => 'required'
+                ),
+                // array(
+                //     'field' => 'service',
+                //     'label' => 'Service',
+                //     'rules' => 'required'
+                // ),
+                array(
+                    'field' => 'type',
+                    'label' => 'Type',
+                    'rules' => 'required'
+                ),
+                array(
+                    'field' => 'package_price',
+                    'label' => 'Package Price',
+                    'rules' => 'required|numeric'
+                ),
+                array(
+                    'field' => 'shipping_note',
+                    'label' => 'Shipping Note',
+                    'rules' => 'required'
+                ),
+                // array(
+                //     'field' => 'shipping_price',
+                //     'label' => 'Shipping Price',
+                //     'rules' => 'required|numeric'
+                // ),
+                array(
+                    'field' => 'receiver_name',
+                    'label' => 'Receiver Name',
+                    'rules' => 'required'
+                ),
+                array(
+                    'field' => 'receiver_destination',
+                    'label' => 'Receiver Destination',
+                    'rules' => 'required'
+                ),
+                array(
+                    'field' => 'receiver_phone',
+                    'label' => 'Receiver Phone',
+                    'rules' => 'trim|required|min_length[5]|max_length[13]|numeric|is_unique[sales.receiver_phone]'
+                ),
+                array(
+                    'field' => 'receiver_city',
+                    'label' => 'Receiver City',
+                    'rules' => 'required'
+                ),
+                array(
+                    'field' => 'receiver_subdistrict',
+                    'label' => 'Receiver Subdistrict',
+                    'rules' => 'required'
+                ),
+                array(
+                    'field' => 'receiver_zip_code',
+                    'label' => 'Receiver Zip Code',
+                    'rules' => 'required'
+                ),
+                array(
+                    'field' => 'receiver_address',
+                    'label' => 'Receiver Address',
+                    'rules' => 'required'
+                ),
+                array(
+                    'field' => 'product_code[]',
+                    'label' => 'Product',
+                    'rules' => 'required'
+                ),
+                array(
+                    'field' => 'product_quantity[]',
+                    'label' => 'Qty',
+                    'rules' => 'required|numeric'
+                ),
+                array(
+                    'field' => 'weight[]',
+                    'label' => 'Weight (KG)',
+                    'rules' => 'required|numeric'
+                ),
+                array(
+                    'field' => 'dimension_size[]',
+                    'label' => 'Length',
+                    'rules' => 'required'
+                ),
+                array(
+                    'field' => 'goods_description[]',
+                    'label' => 'Goods Description',
+                    'rules' => 'required'
+                ),
+            );
 
-        $this->form_validation->set_rules($config);
-        $this->form_validation->set_message('is_unique', '<span style="color: #fff;"><b>{field} Sudah Terpakai</b></span>');
-        $this->form_validation->set_message('required', '<span style="color: #fff;"><b>{field} tidak boleh kosong</b></span>');
-        if ($this->form_validation->run() == false)
-        {   
-            set_cookie('ci_csrf_token', 'ci_csrf_token', 128000);
-            $this->data['error']         = validation_errors() ? validation_errors() : $this->session->flashdata('error');
-            $this->data['warehouses']    = $this->warehouses_model->fetch_warehouses();
-            $this->data['address_books'] = $this->address_books_model->fetch_address_books();
-            $this->data['items']         = $this->items_model->fetch_items_all();
-            $this->data['page_title']    = lang('Sales Add Manually');
-            // $this->data['alert']         = $alert;
-            // $this->data['hidden_form']   = $hidden_form;
-            $this->page_construct('sales/add_manually', $this->data);
+            $this->form_validation->set_rules($config);
+            $this->form_validation->set_message('is_unique', '<span style="color: #fff;"><b>{field} Sudah Terpakai</b></span>');
+            $this->form_validation->set_message('required', '<span style="color: #fff;"><b>{field} tidak boleh kosong</b></span>');
 
-            if (!empty($_SESSION['message'])) {
-              unset($_SESSION['message']);
+            if ($this->form_validation->run() == false)
+            {   
+                $this->data['error']                    = validation_errors() ? validation_errors() : $this->session->flashdata('error');
+                $this->data['warehouses']               = $this->warehouses_model->fetch_warehouses();
+                $this->data['address_books']            = $this->address_books_model->fetch_address_books();
+                $this->data['items']                    = $this->items_model->fetch_items_all();
+                $this->data['page_title']               = lang('Sales Add Ekspedition Process');
+                $this->data['page_ekspedition_process'] = 1;
+                $this->data['jne_destination']          = $this->api_jne_destination();
+                $this->data['jne_origin']               = $this->api_jne_origin();
+                $this->data['invoice']                  = $invoice;
+                $this->page_construct('sales/add_manually', $this->data);
+
+                if (!empty($_SESSION['message'])) {
+                  unset($_SESSION['message']);
+                }
+            }
+            else
+            {
+                if (isset($_POST['create_invoice']))
+                {
+                    $this->process();
+                }
             }
         }
         else
         {
-            $this->process();
+            $config = array(
+                array(
+                    'field' => 'order_no',
+                    'label' => 'Order Invoice',
+                    'rules' => 'trim|required|is_unique[sales.order_no]'
+                ),
+                array(
+                    'field' => 'shipper_city_code',
+                    'label' => 'Shipper Origin Address',
+                    'rules' => 'required'
+                ),
+                array(
+                    'field' => 'receiver_destination',
+                    'label' => 'Receiver Destination',
+                    'rules' => 'required'
+                ),
+                array(
+                    'field' => 'product_code[]',
+                    'label' => 'Product',
+                    'rules' => 'required'
+                ),
+                array(
+                    'field' => 'product_quantity[]',
+                    'label' => 'Qty',
+                    'rules' => 'required|numeric'
+                ),
+                array(
+                    'field' => 'weight[]',
+                    'label' => 'Weight (KG)',
+                    'rules' => 'required|numeric'
+                ),
+                array(
+                    'field' => 'dimension_size[]',
+                    'label' => 'Length',
+                    'rules' => 'required'
+                ),
+                array(
+                    'field' => 'goods_description[]',
+                    'label' => 'Goods Description',
+                    'rules' => 'required'
+                ),
+            );
+
+            $this->form_validation->set_rules($config);
+            $this->form_validation->set_message('is_unique', '<span style="color: #fff;"><b>{field} Sudah Terpakai</b></span>');
+            $this->form_validation->set_message('required', '<span style="color: #fff;"><b>{field} tidak boleh kosong</b></span>');
+
+            if ($this->form_validation->run() == false)
+            {   
+                $this->data['error']                    = validation_errors() ? validation_errors() : $this->session->flashdata('error');
+                $this->data['page_title']               = lang('Sales Add Manually');
+                $this->data['page_ekspedition_process'] = 0;
+                $this->data['warehouses']               = $this->warehouses_model->getWarehouseById($this->session->userdata('warehouse_id'));
+                $this->data['items']                    = $this->items_model->fetch_items_all();
+                $this->data['jne_destination']          = $this->api_jne_destination();
+                $this->data['jne_origin']               = $this->api_jne_origin();
+                $this->page_construct('sales/add_manually', $this->data);
+
+                if (!empty($_SESSION['message'])) {
+                  unset($_SESSION['message']);
+                }
+            }
+            else
+            {
+                if (isset($_POST['create_invoice']))
+                {
+                    $this->process();
+                }
+            }
         }
 
     }
@@ -670,20 +743,26 @@ class Sales extends MY_Controller
     public function process()
     {
         $this->load->helper('function_helper');
-        $post = $this->input->post(null, true);
-        if (isset($_POST['add']))
+        $post                    = $this->input->post(null, true);
+        // $shipper_city_code    = $post['shipper_city_code'];
+        // $receiver_destination = $post['receiver_destination'];
+
+        // foreach ($post['weight'] as $key => $value)
+        // {
+        //     $jne_price[] = $this->api_jne_price($shipper_city_code, $receiver_destination, $value);
+        // }
+
+        if (isset($_POST['create_invoice']))
         {
             $insert = $this->sales_model->add_sales_manually($post);
-
             if (empty($insert))
             {
                 $this->session->set_flashdata('error', lang("Order gagal ditambahkan"));
                 redirect("sales");
                 return false;
             }
-
             $this->session->set_flashdata('message', lang("Order berhasil ditambahkan"));
-            redirect('sales');
+            redirect('sales/sales_add_manually_view?invoice='.urlencode($insert));
             return true;
         }
     }
@@ -699,11 +778,6 @@ class Sales extends MY_Controller
         if (!empty($_SESSION['message'])) {
           unset($_SESSION['message']);
         }
-        
-        // if (is_uploaded_file($_FILES['sales_import_excel']['tmp_name']))
-        // {
-        //     print_custom([$_POST, $_FILES]);        
-        // }
     }
 
     public function upload_config($path)
@@ -812,4 +886,74 @@ class Sales extends MY_Controller
             }
         }
     }
+
+    // public function sales_add_manually_price_shipping_view()
+    // {
+
+    // }
+
+    /*api JNE*/
+    public function api_jne_destination()
+    {
+        $jne_url      = 'https://apiv2.jne.co.id:10205/insert/getdestination';
+        $jne_username = $this->config->item('jne_username');
+        $jne_api_key  = $this->config->item('jne_api_key');
+        $header       = [
+            "Content-Type: application/x-www-form-urlencoded",
+            "User-Agent: ".$_SERVER['HTTP_USER_AGENT'],
+        ];
+
+        $body = sprintf("username=%s&api_key=%s", $jne_username, $jne_api_key);
+        $out  = curl_custom($jne_url, $header, $body, 'POST');
+        if (empty($out['detail']))
+        {
+            return [];
+        }
+
+        return ['destination' => $out['detail']];
+    }
+
+    public function api_jne_origin()
+    {
+        $jne_url      = 'https://apiv2.jne.co.id:10205/insert/getorigin';
+        $jne_username = $this->config->item('jne_username');
+        $jne_api_key  = $this->config->item('jne_api_key');
+        $header       = [
+            "Content-Type: application/x-www-form-urlencoded",
+            "User-Agent: ".$_SERVER['HTTP_USER_AGENT'],
+        ];
+
+        $body = sprintf("username=%s&api_key=%s", $jne_username, $jne_api_key);
+        $out  = curl_custom($jne_url, $header, $body, 'POST');
+        if (empty($out['detail']))
+        {
+            return [];
+        }
+
+        return ['origin' => $out['detail']];
+    }
+
+    public function api_jne_price($origin = '', $destination = '', $weight = 0)
+    {
+        if (empty($origin)) return false;
+        if (empty($destination)) return false;
+        if (empty($weight)) return false;
+        $jne_url      = 'https://apiv2.jne.co.id:10205/tracing/api/pricedev';
+        $jne_username = $this->config->item('jne_username');
+        $jne_api_key  = $this->config->item('jne_api_key');
+        $header       = [
+            "Content-Type: application/x-www-form-urlencoded",
+            "User-Agent: ".$_SERVER['HTTP_USER_AGENT'],
+        ];
+
+        $body = sprintf("username=%s&api_key=%s&from=%s&thru=%s&weight=%s", $jne_username, $jne_api_key, $origin, $destination, $weight);
+        $out  = curl_custom($jne_url, $header, $body, 'POST');
+        if (empty($out['price']))
+        {
+            return [];
+        }
+
+        return $out['price'];        
+    }
+    /*api JNE*/
 }

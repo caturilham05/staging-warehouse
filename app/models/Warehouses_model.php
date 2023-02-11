@@ -110,4 +110,16 @@ class Warehouses_model extends CI_Model
         }
         return FALSE;
     }
+    
+    public function fetch_item_warehouses()
+    {
+        $q = $this->db->get('item_warehouse');
+        if ($q->num_rows() > 0) {
+            foreach (($q->result()) as $row) {
+                $data[] = $row;
+            }
+            return $data;
+        }
+        return FALSE;
+    }
 }

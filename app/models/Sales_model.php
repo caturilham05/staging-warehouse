@@ -7,8 +7,6 @@ use function PHPSTORM_META\map;
 class Sales_model extends CI_Model
 {
 
-
-
     public function __construct()
     {
         parent::__construct();
@@ -27,6 +25,14 @@ class Sales_model extends CI_Model
 
     public function getSalesByCode($awb)
     {
+    }
+
+    public function getSalesByInvoice($invoice){
+        $q = $this->db->get_where('sales', array('order_no' => $invoice), 1);
+        if ($q->num_rows() > 0) {
+            return $q->row_array();
+        }
+        return FALSE;
     }
 
     public function insertBatch(string $data)
@@ -183,68 +189,116 @@ class Sales_model extends CI_Model
         }
     }
 
-    public function add_sales_manually($post, $is_import = 0)
+    public function add_sales_manually($post, $is_import = 0, $is_ekspedition_process = 0)
     {
         if (empty($is_import))
-        {            
-            $order_exist = $this->db->get('sales')->row()->order_no;
-
-            if (empty($post['shipper_id'])) return false;
-
-            $address_book = $this->db->get_where('address_books', ['id' => $post['shipper_id']], 1)->row_array();
-            if (empty($address_book)) return false;
-            $address_book['phone'] = preg_match('~08~is', $address_book['phone']) ? preg_replace('~08~is', '628', $address_book['phone']) : $address_book['phone'];
-
-            $master_location = $this->db->get_where('master_locations', ['id' => $address_book['location_id']], 1)->row_array();
-            if (empty($master_location)) return false;
-
-            $warehouse = $this->db->get_where('warehouses', ['id' => $post['warehouse_id']], 1)->row_array();
-            if (empty($warehouse)) return false;
-
-            $product_q = $this->db->where_in('code', $post['product_code']);
-            $products  = $product_q->get('items')->result_array();
-            if (empty($products)) return false;
-
-            foreach ($post['product_code'] as $key => $value)
+        {
+            if (empty($is_ekspedition_process))
             {
-                $product_groups['product_code']      = $value;
-                $product_groups['product_quantity']  = !empty($post['product_quantity'][$key]) ?  $post['product_quantity'][$key] : 0;
-                $product_groups['weight']            = !empty($post['weight'][$key]) ?  $post['weight'][$key] : 0;
-                $product_groups['dimension_size']    = !empty($post['dimension_size'][$key]) ?  $post['dimension_size'][$key] : '';
-                $product_groups['goods_description'] = !empty($post['goods_description'][$key]) ?  $post['goods_description'][$key] : '';
-                $product_groups_set[$value]          = $product_groups;
+
+                // if (empty($post['shipper_id'])) return false;
+
+                // $address_book = $this->db->get_where('address_books', ['id' => $post['shipper_id']], 1)->row_array();
+                // if (empty($address_book)) return false;
+                // $address_book['phone'] = preg_match('~08~is', $address_book['phone']) ? preg_replace('~08~is', '628', $address_book['phone']) : $address_book['phone'];
+
+                // $master_location = $this->db->get_where('master_locations', ['id' => $address_book['location_id']], 1)->row_array();
+                // if (empty($master_location)) return false;
+
+                // $warehouse = $this->db->get_where('warehouses', ['id' => $post['warehouse_id']], 1)->row_array();
+                // if (empty($warehouse)) return false;
+
+                $product_q = $this->db->where_in('code', $post['product_code']);
+                $products  = $product_q->get('items')->result_array();
+                if (empty($products)) return false;
+
+                foreach ($post['product_code'] as $key => $value)
+                {
+                    $product_groups['product_code']      = $value;
+                    $product_groups['product_quantity']  = !empty($post['product_quantity'][$key]) ?  $post['product_quantity'][$key] : 0;
+                    $product_groups['weight']            = !empty($post['weight'][$key]) ?  $post['weight'][$key] : 0;
+                    $product_groups['dimension_size']    = !empty($post['dimension_size'][$key]) ?  $post['dimension_size'][$key] : '';
+                    $product_groups['goods_description'] = !empty($post['goods_description'][$key]) ?  $post['goods_description'][$key] : '';
+                    $product_groups_set[$value]          = $product_groups;
+                }
+                foreach ($products as $key => $value)
+                {
+                    $data[] = [
+                        'order_no'             => $post['order_no'],
+                        'warehouse_id'         => $post['warehouse_id'],
+                        'shipper_city_code'    => $post['shipper_city_code'],
+                        'receiver_destination' => $post['receiver_destination'],
+                        'status'               => 'process',
+                        'status_packing'       => 'process',
+                        'product_id'           => !empty($product_groups_set[$value['code']]) ? $value['code'] : 0,
+                        'product_quantity'     => !empty($product_groups_set[$value['code']]['product_quantity']) ? $product_groups_set[$value['code']]['product_quantity'] : 0,
+                        'weight'               => !empty($product_groups_set[$value['code']]['weight']) ? $product_groups_set[$value['code']]['weight'] : 0,
+                        'dimension_size'       => !empty($product_groups_set[$value['code']]['dimension_size']) ? $product_groups_set[$value['code']]['dimension_size'] : '',
+                        'goods_description'    => !empty($product_groups_set[$value['code']]['goods_description']) ? $product_groups_set[$value['code']]['goods_description'] : '',
+                    ];
+                }
             }
-
-            foreach ($products as $key => $value)
+            else
             {
-                $data[] = [
-                    'order_no'             => $post['order_no'],
-                    'awb_no'               => $post['awb_no'],
-                    'warehouse_id'         => $post['warehouse_id'],
-                    'courier'              => $post['courier'],
-                    'service'              => $post['service'],
-                    'type'                 => $post['type'],
-                    'package_price'        => $post['package_price'],
-                    'shipping_price'       => $post['shipping_price'],
-                    'shipper_id'           => $post['shipper_id'],
-                    'shipper_name'         => $address_book['name'],
-                    'shipper_phone'        => $address_book['phone'],
-                    'shipper_address'      => $address_book['address'],
-                    'shipper_city'         => $master_location['title'],
-                    'shipper_subdistrict'  => $master_location['detail'],
-                    'shipper_zip_code'     => $master_location['postcode'],
-                    'receiver_name'        => $post['receiver_name'],
-                    'receiver_phone'       => $post['receiver_phone'],
-                    'receiver_city'        => $post['receiver_city'],
-                    'receiver_subdistrict' => $post['receiver_subdistrict'],
-                    'receiver_zip_code'    => $post['receiver_zip_code'],
-                    'receiver_address'     => $post['receiver_address'],
-                    'product_id'           => !empty($product_groups_set[$value['code']]) ? $value['code'] : 0,
-                    'product_quantity'     => !empty($product_groups_set[$value['code']]['product_quantity']) ? $product_groups_set[$value['code']]['product_quantity'] : 0,
-                    'weight'               => !empty($product_groups_set[$value['code']]['weight']) ? $product_groups_set[$value['code']]['weight'] : 0,
-                    'dimension_size'       => !empty($product_groups_set[$value['code']]['dimension_size']) ? $product_groups_set[$value['code']]['dimension_size'] : '',
-                    'goods_description'    => !empty($product_groups_set[$value['code']]['goods_description']) ? $product_groups_set[$value['code']]['goods_description'] : '',
-                ];
+                // if (empty($post['shipper_id'])) return false;
+
+                // $address_book = $this->db->get_where('address_books', ['id' => $post['shipper_id']], 1)->row_array();
+                // if (empty($address_book)) return false;
+                // $address_book['phone'] = preg_match('~08~is', $address_book['phone']) ? preg_replace('~08~is', '628', $address_book['phone']) : $address_book['phone'];
+
+                // $master_location = $this->db->get_where('master_locations', ['id' => $address_book['location_id']], 1)->row_array();
+                // if (empty($master_location)) return false;
+
+                // $warehouse = $this->db->get_where('warehouses', ['id' => $post['warehouse_id']], 1)->row_array();
+                // if (empty($warehouse)) return false;
+
+                $product_q = $this->db->where_in('code', $post['product_code']);
+                $products  = $product_q->get('items')->result_array();
+                if (empty($products)) return false;
+
+                foreach ($post['product_code'] as $key => $value)
+                {
+                    $product_groups['product_code']      = $value;
+                    $product_groups['product_quantity']  = !empty($post['product_quantity'][$key]) ?  $post['product_quantity'][$key] : 0;
+                    $product_groups['weight']            = !empty($post['weight'][$key]) ?  $post['weight'][$key] : 0;
+                    $product_groups['dimension_size']    = !empty($post['dimension_size'][$key]) ?  $post['dimension_size'][$key] : '';
+                    $product_groups['goods_description'] = !empty($post['goods_description'][$key]) ?  $post['goods_description'][$key] : '';
+                    $product_groups_set[$value]          = $product_groups;
+                }
+
+                foreach ($products as $key => $value)
+                {
+                    $data[] = [
+                        'order_no'             => $post['order_no'],
+                        'awb_no'               => $post['awb_no'],
+                        'warehouse_id'         => $post['warehouse_id'],
+                        'courier'              => $post['courier'],
+                        'service'              => $post['service'],
+                        'type'                 => $post['type'],
+                        'package_price'        => $post['package_price'],
+                        'shipping_price'       => $post['shipping_price'],
+                        'shipper_id'           => $post['shipper_id'],
+                        'shipper_city_code'    => $post['shipper_city_code'],
+                        'shipper_name'         => $address_book['name'],
+                        'shipper_phone'        => $address_book['phone'],
+                        'shipper_address'      => $address_book['address'],
+                        'shipper_city'         => $master_location['title'],
+                        'shipper_subdistrict'  => $master_location['detail'],
+                        'shipper_zip_code'     => $master_location['postcode'],
+                        'receiver_name'        => $post['receiver_name'],
+                        'receiver_destination' => $post['receiver_destination'],
+                        'receiver_phone'       => $post['receiver_phone'],
+                        'receiver_city'        => $post['receiver_city'],
+                        'receiver_subdistrict' => $post['receiver_subdistrict'],
+                        'receiver_zip_code'    => $post['receiver_zip_code'],
+                        'receiver_address'     => $post['receiver_address'],
+                        'product_id'           => !empty($product_groups_set[$value['code']]) ? $value['code'] : 0,
+                        'product_quantity'     => !empty($product_groups_set[$value['code']]['product_quantity']) ? $product_groups_set[$value['code']]['product_quantity'] : 0,
+                        'weight'               => !empty($product_groups_set[$value['code']]['weight']) ? $product_groups_set[$value['code']]['weight'] : 0,
+                        'dimension_size'       => !empty($product_groups_set[$value['code']]['dimension_size']) ? $product_groups_set[$value['code']]['dimension_size'] : '',
+                        'goods_description'    => !empty($product_groups_set[$value['code']]['goods_description']) ? $product_groups_set[$value['code']]['goods_description'] : '',
+                    ];
+                }
             }
         }
         else
@@ -262,6 +316,6 @@ class Sales_model extends CI_Model
         }
 
         $this->db->trans_commit();
-        return true;
+        return $post['order_no'];
     }
 }

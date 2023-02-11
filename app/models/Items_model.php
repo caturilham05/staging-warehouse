@@ -148,7 +148,7 @@ class Items_model extends CI_Model {
             }
             return $data;
         }
-        return FALSE;;
+        return FALSE;
     }
 
     public function getCheckIns($item_id, $limit = 5) {
@@ -181,4 +181,15 @@ class Items_model extends CI_Model {
         return FALSE;;
     }
 
+    public function fetch_item_warehouses()
+    {
+        $q = $this->db->get('item_warehouse');
+        if ($q->num_rows() > 0) {
+            foreach (($q->result()) as $row) {
+                $data[] = $row;
+            }
+            return $data;
+        }
+        return FALSE;
+    }
 }

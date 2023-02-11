@@ -1,4 +1,5 @@
-<?php (defined('BASEPATH')) or exit('No direct script access allowed'); ?>
+<?php (defined('BASEPATH')) or exit('No direct script access allowed');
+?>
 <style type="text/css">
     .table td:first-child {
         padding: 3px;
@@ -20,158 +21,104 @@
     <h3><i class="fa fa-barcode"></i> <?= $page_title; ?><a href="<?= site_url('warehouses/add') ?>" class="btn btn-primary pull-right"><i class="fa fa-plus"></i> <?= lang('Add Warehouses'); ?></a></h3>
     <p><?= lang('list_results'); ?></p>
 </div>
+
 <div class="row">
-    <div class="row">
-        <div class="col-lg-12">
-            <div class="content-panel">
-                <div class="table-responsive">
-                    <table id="TTable" class="table table-bordered table-striped cf" style="margin-bottom:5px;">
-                        <thead class="cf">
-                            <tr>
-                                <th><?= lang('id'); ?></th>
-
-                                <th class="col-xs-3"><?= lang('name'); ?></th>
-
-                                <th class="col-xs-2"><?= lang('actions'); ?></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td colspan="9" class="dataTables_empty"><?= lang('loading_data_from_server'); ?></td>
-                            </tr>
-                        </tbody>
-                        <tfoot>
-                            <tr>
-                                <th><input class="form-control full-width" placeholder="[<?= lang('id'); ?>]" type="text"></th>
-
-                                <th class="col-xs-3">[<?= lang('name'); ?>]</th>
-
-                                <th class="col-xs-2"><?= lang('actions'); ?></th>
-                            </tr>
-                            <tr>
-                                <td colspan="9" class="p0"><input type="text" class="form-control b0" name="search_table" id="search_table" placeholder="[<?= lang('type_hit_enter'); ?>]" style="width:100%;"></td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-<div class="modal fade" id="picModal" tabindex="-1" role="dialog" aria-labelledby="picModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-2x">&times;</i></button>
-                <h4 class="modal-title" id="myModalLabel">title</h4>
-            </div>
-            <div class="modal-body text-center">
-                <img id="product_image" src="" alt="" class="img-responsive" style="display: inline-block;" />
+    <div class="col-lg-12">
+        <div class="content-panel">
+            <div class="table-responsive">
+                <table id="TTable" class="table table-bordered table-striped cf" style="margin-bottom:5px;">
+                    <thead class="cf">
+                        <tr>
+                            <th class="col-xs-1"><?= lang('Warehouse'); ?></th>
+                            <th class="col-xs-2"><?= lang('Product Code'); ?></th>
+                            <th class="col-xs-1"><?= lang('Product'); ?></th>
+                            <th class="col-xs-2"><?= lang('Quantity'); ?></th>
+                            <th class="col-xs-2"><?= lang('Actions'); ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="10" class="dataTables_empty"><?= lang('loading_data_from_server'); ?></td>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th class="col-xs-1"><?= lang('Warehouse'); ?></th>
+                            <th class="col-xs-2"><?= lang('Product Code'); ?></th>
+                            <th class="col-xs-1"><?= lang('Product'); ?></th>
+                            <th class="col-xs-2"><?= lang('Quantity'); ?></th>
+                            <th class="col-xs-2"><?= lang('Actions'); ?></th>
+                        </tr>
+                        <tr>
+                            <td colspan="9" class="p0"><input type="text" class="form-control b0" name="search_table" id="search_table" placeholder="[<?= lang('type_hit_enter'); ?>]" style="width:100%;"></td>
+                        </tr>
+                    </tfoot>
+                </table>
             </div>
         </div>
     </div>
 </div>
 <script type="text/javascript">
+    const delete_items = '<?= base_url('warehouses/delete/') ?>'
+    const edit_items   = '<?= base_url('warehouses/edit/') ?>'
+    var detail_table;
+    const formAdd = document.getElementById('formAdd');
+
     $(document).ready(function() {
+      var table = $('#TTable').DataTable({
+          "order": [
+              [2, "desc"]
+          ],
 
-
-        var table = $('#TTable').DataTable({
-
-
-            "order": [
-                [1, "desc"]
-            ],
-            "pageLength": <?= $Settings->rows_per_page; ?>,
-            "processing": true,
-            "serverSide": true,
-            'ajax': {
-                url: '<?= site_url('warehouses/get_warehouses'); ?>',
-                type: 'POST',
-                "data": function(d) {
-                    d.<?= $this->security->get_csrf_token_name(); ?> = "<?= $this->security->get_csrf_hash() ?>";
-                }
+          "pageLength": <?= $Settings->rows_per_page; ?>,
+          "processing": true,
+          "serverSide": true,
+          'ajax': {
+              url: '<?= site_url('warehouses/get_warehouses'); ?>',
+              type: 'POST',
+              "data": function(d) {d.<?= $this->security->get_csrf_token_name(); ?> = "<?= $this->security->get_csrf_hash() ?>";}
+          },
+          "buttons": [],
+          "columns": [
+            {
+                "render": (data, type, row, meta) => {  return `${row[0]}`;}
             },
-            "buttons": [{
-                    extend: 'copyHtml5',
-                    exportOptions: {
-                        columns: [0, 1, 2, 3, 4, 5, 6, 7]
-                    }
-                },
-                {
-                    extend: 'excelHtml5',
-                    'footer': true,
-                    exportOptions: {
-                        columns: [0, 1, 2, 3, 4, 5, 6, 7]
-                    }
-                },
-                {
-                    extend: 'csvHtml5',
-                    'footer': true,
-                    exportOptions: {
-                        columns: [0, 1, 2, 3, 4, 5, 6, 7]
-                    }
-                },
-                {
-                    extend: 'pdfHtml5',
-                    orientation: 'landscape',
-                    pageSize: 'A4',
-                    'footer': true,
-                    exportOptions: {
-                        columns: [0, 1, 2, 3, 4, 5, 6, 7]
-                    },
-                    customize: function(doc) {
-                        doc.content[1].table.widths =
-                            Array(doc.content[1].table.body[0].length + 1).join('*').split('');
-                    }
-                },
-                {
-                    extend: 'colvis',
-                    text: 'Columns'
-                },
-            ],
-            "columns": [{
-                    "data": "id",
-                    "visible": false
-                },
-                {
-                    "data": "name"
-                },
-                {
-                    "data": "Actions",
-                    "searchable": false,
-                    "orderable": false
+            {
+              "render": (data, type, row, meta) => {return `${row[1]}`;}
+            },
+            {
+              "render": (data, type, row, meta) => {return `${row[2]}`;}
+            },
+            {
+              "render": (data, type, row, meta) => {return row[3];}
+            },
+            {
+                "render": (data, type, row, meta) => {
+                    return `    
+                    <!-- edit button -->
+                    <div class='btn-group' role='group'>
+                        <a class='tip btn btn-warning btn-sm' 
+                            title="Edit Item"
+                            href='${edit_items}${row[0]}'>
+                            <i class='fa fa-edit'></i>
+                        </a>
+                    </div>
+
+                    <!-- delete button -->
+                    <div class='btn-group div-confirm' role='group'>
+                        <a href='#' class='btn btn-danger  btn-sm tip po btn-delete'
+                            title="Delete Item"
+                            data-content="<p>Are you sure?</p><a class='btn btn-danger po-delete' 
+                            href='${delete_items}${row[0]}'>
+                            I'm Sure</a>
+                            <button class='btn po-close'>No</button>" rel='popover'>
+                            <i class='fa fa-trash-o'></i>
+                        </a>
+                    </div>
+                    </div>`;
                 }
-            ],
-            'fnRowCallback': function(nRow, aData) {
-                nRow.id = aData.id;
-                nRow.className = "item_link";
-                return nRow;
             }
-        });
-
-
-        $('#TTable tfoot th:not(:first, :last)').each(function() {
-            var title = $(this).text();
-            $(this).html('<input type="text" class="form-control full-width" placeholder="' + title + '" />');
-        });
-
-        $('#search_table').on('keyup change', function(e) {
-            var code = (e.keyCode ? e.keyCode : e.which);
-            if (((code == 13 && table.search() !== this.value) || (table.search() !== '' && this.value === ''))) {
-
-                table.search(this.value).draw();
-            }
-        });
-
-        table.columns().every(function() {
-            var self = this;
-            $('input', this.footer()).on('keyup change', function(e) {
-                var code = (e.keyCode ? e.keyCode : e.which);
-                if (((code == 13 && self.search() !== this.value) || (self.search() !== '' && this.value === ''))) {
-
-                    self.search(this.value).draw();
-                }
-            });
-        });
+          ],
+      });
     });
 </script>

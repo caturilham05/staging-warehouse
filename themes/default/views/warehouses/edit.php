@@ -3,6 +3,12 @@
     <h3><i class="fa fa-plus"></i> <?= $page_title; ?></h3>
     <p><?= lang('update_info'); ?></p>
 </div>
+<center>
+    <h1>Masih Dalam Pengembangan</h1>
+</center>
+<?php
+return;
+?>
 <div class="row">
     <div class="col-lg-12">
         <div class="content-panel">
