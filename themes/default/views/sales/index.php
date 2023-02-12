@@ -140,9 +140,9 @@
                         <tr>
                             <th class="col-xs-2"><?= lang('Order'); ?></th>
                             <th class="col-xs-3"><?= lang('Pengirim/Penerima'); ?></th>
-                            <th class="col-xs-2"><?= lang('Paket'); ?></th>
+                            <!-- <th class="col-xs-2"><?= lang('Paket'); ?></th>  -->
                             <th class="col-xs-1"><?= lang('Kurir'); ?></th>
-                            <th class="col-xs-1"><?= lang('Total'); ?></th>
+                            <!-- <th class="col-xs-1"><?= lang('Total'); ?></th> -->
                             <th class="col-xs-1"><?= lang('Action'); ?></th>
                         </tr>
                     </thead>
@@ -155,9 +155,9 @@
                         <tr>
                             <th class="col-xs-2"><?= lang('Order'); ?></th>
                             <th class="col-xs-3"><?= lang('Pengirim/Penerima'); ?></th>
-                            <th class="col-xs-2"><?= lang('Paket'); ?></th>
+                            <!-- <th class="col-xs-2"><?= lang('Paket'); ?></th> -->
                             <th class="col-xs-1"><?= lang('Kurir'); ?></th>
-                            <th class="col-xs-1"><?= lang('Total'); ?></th>
+                            <!-- <th class="col-xs-1"><?= lang('Total'); ?></th> -->
                             <th class="col-xs-1"><?= lang('Action'); ?></th>
                         </tr>
                         <tr>
@@ -176,6 +176,7 @@
     const delete_url = '<?= base_url('sales/deleteSales/'); ?>';
     const status_packing_url = '<?= base_url('sales/update_status_packing/'); ?>';
     const url_continue = '<?= base_url('sales/sales_add_manually_view?invoice='); ?>';
+    const detail = '<?= base_url('sales/sales_detail_view?invoice='); ?>';
 
 
     $(document).ready(function() {
@@ -236,7 +237,7 @@
                     </span>
                     </p>
                     <p class="m-0 p-0"> <h6 style="font-size:5;">Dibuat : ${row[8]}</h6></p>
-                    <p class="m-0 p-0"> <h6 style="font-size:5;">Status Packing : ${row[37] === 'process' ? '<b>Processs</b>' : (row[37] === null ? '<b>Belum Dikirim</b>' : '<b>Dikirim</b>')}</h6></p>
+                    <p class="m-0 p-0"> <h6 style="font-size:5;">Status Packing : ${row[37] === 'process' ? '<b>Process</b>' : (row[37] === null ? '<b>Belum Dikirim</b>' : '<b>Dikirim</b>')}</h6></p>
                     </div>
                          `;
                     }
@@ -290,23 +291,23 @@
                          `;
                     }
                 },
-                {
-                    //paket
+                // {
+                //     //paket
 
 
-                    "render": (data, type, row, meta) => {
-                        let package_price = row[12] === null ? 0 : row[12];
-                        return `         
-                    <p class="order_number" style="font-size:14px;font-weight:bold;">${capitalizeFirstLetter(row[31])}
-                    </p>
-                    <p style="font-size:13px;">Berat (kg) : ${row[33]}</p>
-                    <p style="font-size:13px;">Harga Paket : Rp${
-                        package_price.toString().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1.")
-                    }</p>
+                //     "render": (data, type, row, meta) => {
+                //         let package_price = row[12] === null ? 0 : row[12];
+                //         return `         
+                //     <p class="order_number" style="font-size:14px;font-weight:bold;">${capitalizeFirstLetter(row[31])}
+                //     </p>
+                //     <p style="font-size:13px;">Berat (kg) : ${row[33]}</p>
+                //     <p style="font-size:13px;">Harga Paket : Rp${
+                //         package_price.toString().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1.")
+                //     }</p>
                    
-                         `;
-                    }
-                },
+                //          `;
+                //     }
+                // },
                 {
                     //kurir
                     "data": "awb_no",
@@ -324,44 +325,50 @@
                          `;
                     }
                 },
-                {
+                // {
 
-                    "render": (data, type, row, meta) => {
-                        let cod_value = row[16] === null ? 0 : row[16];
-                        let package_price = row[12] === null ? 0 : row[12];
-                        return `
+                //     "render": (data, type, row, meta) => {
+                //         let cod_value = row[16] === null ? 0 : row[16];
+                //         let package_price = row[12] === null ? 0 : row[12];
+                //         return `
                         
                         
-                    <!-- jika cod_value != nol, maka cod_value dipake , otherwise package_price dipake -->
+                //     <!-- jika cod_value != nol, maka cod_value dipake , otherwise package_price dipake -->
                         
-                        <p style="font-size:14px;font-weight:bold;"> ${cod_value != 0 ? 
-                            //indonesia rupiah
-                            'Rp' + cod_value.toString().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1.") :
-                            'Rp' + package_price.toString().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1.")} </p>
-                         `;
-                    }
-                },
+                //         <p style="font-size:14px;font-weight:bold;"> ${cod_value != 0 ? 
+                //             //indonesia rupiah
+                //             'Rp' + cod_value.toString().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1.") :
+                //             'Rp' + package_price.toString().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1.")} </p>
+                //          `;
+                //     }
+                // },
                 {
                     "render": function(data, type, row, meta) {
                         let invoice = row[1];
                         return `
-                            <div class='btn-group' role='group'>
-                                <a href='#' class='btn btn-danger  tip po'
-                                    data-content="<p>Are you sure?</p><a class='btn btn-danger po-delete' 
-                                    href='${delete_url}${row[0]}'>
-                                    I'm Sure</a>
-                                    <button class='btn po-close'>No</button>" rel='popover'>
-                                    <span>Delete</span>
-                                </a>
+                            <div style="display: flex; flex-direction: columns; justify-content: center;">
+                                <div class='btn-group' role='group'>
+                                    <a href="${detail + encodeURIComponent(invoice)}" class="btn btn-info">Detail</a>
+                                </div>&nbsp;
+                                ${
+                                    row[37] === 'process' ? `
+                                    <div class='btn-group' role='group'>
+                                        <a href="${url_continue + encodeURIComponent(invoice)}" class="btn btn-primary">Continue</a>
+                                    </div>&nbsp;`
+                                    :
+                                    ''
+                                }
+                                <div class='btn-group' role='group'>
+                                    <a href='#' class='btn btn-danger  tip po'
+                                        data-content="<p>Are you sure?</p><a class='btn btn-danger po-delete' 
+                                        href='${delete_url}${row[0]}'>
+                                        I'm Sure</a>
+                                        <button class='btn po-close'>No</button>" rel='popover'>
+                                        <span>Delete</span>
+                                    </a>
+                                </div>
                             </div>
-                            ${
-                                row[37] === 'process' ? `
-                                <div class='btn-group' role='group' style="margin-top: 1rem">
-                                    <a href="${url_continue + encodeURIComponent(invoice)}" class="btn btn-primary">Continue Order</a>
-                                </div>`
-                                :
-                                ''
-                            }`;
+                            `;
                     }
                 }
             ],
