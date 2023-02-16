@@ -789,7 +789,6 @@ class Sales extends MY_Controller
             $spreadsheet = $reader->load($file_name);
             $sheet_data  = $spreadsheet->getActiveSheet()->toArray();
             $list        = [];
-            $invoice     = invoice_generate();
 
             foreach($sheet_data as $key => $value)
             {
@@ -799,7 +798,8 @@ class Sales extends MY_Controller
                     $master_location = $this->db->get_where('master_locations', ['id' => $address_book['location_id']], 1)->row_array();
                     $list[]          = [
                         'warehouse_id'         => $this->warehouses_model->getWarehouseByName($value[0]),
-                        'order_no'             => $invoice,
+                        'warehouse_name'       => $value[0],
+                        'order_no'             => invoice_generate(),
                         'awb_no'               => $value[1],
                         'courier'              => $value[2],
                         'service'              => $value[3],
@@ -834,17 +834,7 @@ class Sales extends MY_Controller
 
             if(count($list) > 0)
             {
-                $insert = $this->sales_model->add_sales_manually($list, 1);
-                if (empty($insert))
-                {
-                    $this->session->set_flashdata('error', lang("Order gagal ditambahkan"));
-                    redirect("sales/sales_add_import_excel_view");
-                    return false;
-                }
-
-                $this->session->set_flashdata('message', lang("Order berhasil ditambahkan"));
-                redirect("sales");
-                return true;
+                $this->sales_add_import_excel_data_review($list);
             }
             else
             {
@@ -855,10 +845,124 @@ class Sales extends MY_Controller
         }
     }
 
-    // public function sales_add_manually_price_shipping_view()
-    // {
+    public function sales_add_import_excel_data_review($lists = [])
+    {
+        foreach ($lists as $key => $value)
+        {
+            $product_code     = explode('#', $value['product_id']);
+            $product_quantity = explode('#', $value['product_quantity']);
+            foreach ($product_code as $k_code => $v_code)
+            {
+                $product                                    = (array)$this->items_model->getItemByCode($v_code);
+                $value['products'][$k_code]['code']         = $product['code'];
+                $value['products'][$k_code]['product_name'] = $product['name'];
+                $value['products'][$k_code]['qty']          = $product_quantity[$k_code];
+            }
+            $lists[$key] = $value;
+        }
 
-    // }
+        $this->data['error']           = validation_errors() ? validation_errors() : $this->session->flashdata('error');
+        $this->data['page_title']      = lang('Sales Import Excel Review');
+        $this->data['data']            = $lists;
+        $this->data['jne_destination'] = $this->api_jne_destination();
+        $this->data['jne_origin']      = $this->api_jne_origin();
+        $this->page_construct('sales/add_import_excel_review', $this->data);
+
+        if (!empty($_SESSION['message'])) {
+            unset($_SESSION['message']);
+        }
+
+        if (isset($_POST['submit_order_excel']))
+        {
+            foreach ($_POST['order_no'] as $key => $value)
+            {
+                $datas[] = [
+                    'order_no'             => $value,
+                    'warehouse_id'         => $_POST['warehouse_id'][$key],
+                    'courier'              => $_POST['courier'][$key],
+                    'type'                 => $_POST['type'][$key],
+                    'package_price'        => $_POST['package_price'][$key],
+                    'shipper_id'           => $_POST['shipper_id'][$key],
+                    'shipper_name'         => $_POST['shipper_name'][$key],
+                    'shipper_phone'        => $_POST['shipper_phone'][$key],
+                    'shipper_address'      => $_POST['shipper_address'][$key],
+                    'shipper_city'         => $_POST['shipper_city'][$key],
+                    'shipper_subdistrict'  => $_POST['shipper_subdistrict'][$key],
+                    'shipper_zip_code'     => $_POST['shipper_zip_code'][$key],
+                    'receiver_name'        => $_POST['receiver_name'][$key],
+                    'receiver_phone'       => $_POST['receiver_phone'][$key],
+                    'receiver_address'     => $_POST['receiver_address'][$key],
+                    'receiver_city'        => $_POST['receiver_city'][$key],
+                    'receiver_subdistrict' => $_POST['receiver_subdistrict'][$key],
+                    'receiver_zip_code'    => $_POST['receiver_zip_code'][$key],
+                    'goods_description'    => $_POST['goods_description'][$key],
+                    'weight'               => $_POST['weight'][$key],
+                    'dimension_size'       => $_POST['dimension_size'][$key],
+                    'shipping_note'        => $_POST['shipping_note'][$key],
+                    'product_id'           => $_POST['product_id'][$key],
+                    'product_quantity'     => $_POST['product_quantity'][$key],
+                    'shipper_city_code'    => $_POST['shipper_city_code'][$key],
+                    'receiver_destination' => $_POST['receiver_destination'][$key],
+                    'service'              => $_POST['service'][$key],
+                    'shipping_price'       => $_POST['shipping_price'][$key],
+                    'status'               => 'process packing',
+                    'status_packing'       => 'process packing',
+                ];
+            }
+
+            foreach ($datas as $key => $value)
+            {
+                $product_code           = explode('#', $value['product_id']);
+                $product_quantity       = explode('#', $value['product_quantity']);
+                $product_quantity_total = array_sum($product_quantity);
+                
+                $create_awb = $this->sales_model->api_jne_create_waybill_model(
+                    $value['shipper_name'],
+                    $value['shipper_address'],
+                    $value['shipper_city'],
+                    $value['shipper_zip_code'],
+                    $value['shipper_city'],
+                    $value['shipper_name'],
+                    $value['shipper_phone'],
+                    $value['receiver_name'],
+                    $value['receiver_address'],
+                    $value['receiver_city'],
+                    $value['receiver_zip_code'],
+                    $value['receiver_city'],
+                    $value['receiver_name'],
+                    $value['receiver_phone'],
+                    $value['shipper_city_code'],
+                    $value['service'],
+                    $value['receiver_destination'],
+                    $value['weight'],
+                    $product_quantity_total,
+                    $value['goods_description'],
+                    $value['shipping_price']
+                );
+                $value['awb_no'] = $create_awb['no_tiket'];
+
+                foreach ($product_code as $k_code => $v_code)
+                {
+                    $product                   = (array)$this->items_model->getItemByCode($v_code);
+                    $value['product_id']       = $product['code'];
+                    $value['product_quantity'] = $product_quantity[$k_code];
+                    $datas_final[]             = $value;
+                }
+            }
+
+            $insert = $this->sales_model->add_sales_manually($datas_final, 1);
+            if (empty($insert))
+            {
+                $this->session->set_flashdata('error', lang("Order gagal ditambahkan"));
+                redirect("sales/sales_add_import_excel_view");
+                return false;
+            }
+
+            $this->session->set_flashdata('message', lang("Order berhasil ditambahkan"));
+            redirect("sales");
+            return true;
+        }
+    }
 
     /*api JNE*/
     public function api_jne_destination()
@@ -922,6 +1026,17 @@ class Sales extends MY_Controller
         }
 
         return $out['price'];        
+    }
+
+    public function api_jne_price_json()
+    {
+        $origin      = !empty($_GET['origin']) ? $_GET['origin'] : '';
+        $destination = !empty($_GET['destination']) ? $_GET['destination'] : '';
+        $weight      = !empty($_GET['weight']) ? $_GET['weight'] : 0;
+        if (empty($origin) || empty($destination) || empty($weight)) return false;
+
+        $return = $this->api_jne_price($origin, $destination, $weight);
+        echo json_encode($return);
     }
 
     public function api_jne_create_waybill(

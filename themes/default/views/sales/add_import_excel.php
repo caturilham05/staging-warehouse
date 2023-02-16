@@ -60,7 +60,7 @@
             <td>Kurir Pengiriman</td>
             <td>Service pengiriman yang dimiliki pihak ekspedisi</td>
             <td>Type pengiriman</td>
-            <td>Harga paket pengiriman</td>
+            <td>Harga Produk</td>
             <td>harga pengiriman</td>
             <td>Nama pengirim produk (Pastikan nama pengirim sesuai berdasarkan ejaan kata dan sudah terdaftar di sistem). bisa dilihat di menu <a href="<?= site_url('address_books');?>" target="_blank"><b>Address Books</b></a></td>
             <td>Nama penerima produk</td>

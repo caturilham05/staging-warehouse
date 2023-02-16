@@ -390,6 +390,6 @@ class Sales_model extends CI_Model
         }
 
         $this->db->trans_commit();
-        return $post['order_no'];
+        return !empty($is_import) ? $post[0]['order_no'] : $post['order_no'];
     }
 }

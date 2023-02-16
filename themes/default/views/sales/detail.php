@@ -24,12 +24,12 @@ $this->load->helper('function_helper');
 			<div class="card__custom">
 				<center>
 				  <h2>SHIPPER</h2>
-          <hr style="border: none; height: 5px; width: 20%; margin: auto; box-shadow: 0px 5px #c8c8c8;">
+		          <hr style="border: none; height: 5px; width: 20%; margin: auto; box-shadow: 0px 5px #c8c8c8;">
 				</center>
 				<div style="margin-top: 3rem;">
-	        <h4><?php echo $sales[0]['shipper_name']?></h4>
-	        <h4><?php echo $sales[0]['shipper_phone']?></h4>
-	        <h4><?php echo $sales[0]['shipper_address']?>, <?php echo $sales[0]['shipper_subdistrict']?></h4>
+			        <h4><?php echo $sales[0]['shipper_name']?></h4>
+			        <h4><?php echo $sales[0]['shipper_phone']?></h4>
+			        <h4><?php echo $sales[0]['shipper_address']?>, <?php echo $sales[0]['shipper_subdistrict']?></h4>
 				</div>
 			</div>
 		</div>
@@ -50,16 +50,16 @@ $this->load->helper('function_helper');
 			<div class="card__custom">
 				<center>
 				  <h2>EXPEDITION</h2>
-          <hr style="border: none; height: 5px; width: 20%; margin: auto; box-shadow: 0px 5px #c8c8c8;">
+		          <hr style="border: none; height: 5px; width: 20%; margin: auto; box-shadow: 0px 5px #c8c8c8;">
 				</center>
 				<div style="margin-top: 3rem;">
-	        <h4><?php echo $sales[0]['awb_no']?></h4>
-	        <h4><?php echo $sales[0]['courier']?></h4>
-	        <h4><?php echo $sales[0]['service']?></h4>
-	        <h4><?php echo $sales[0]['type']?></h4>
-	        <h4><?php echo $sales[0]['shipper_city_code']?></h4>
-	        <h4><?php echo $sales[0]['receiver_destination']?></h4>
-	        <h4><?php echo $sales[0]['shipping_note']?></h4>
+			        <h4><?php echo $sales[0]['awb_no']?></h4>
+			        <h4><?php echo $sales[0]['courier']?></h4>
+			        <h4><?php echo $sales[0]['service']?></h4>
+			        <h4><?php echo $sales[0]['type']?></h4>
+			        <h4><?php echo $sales[0]['shipper_city_code']?></h4>
+			        <h4><?php echo $sales[0]['receiver_destination']?></h4>
+			        <h4><?php echo $sales[0]['shipping_note']?></h4>
 				</div>
 			</div>
 		</div>

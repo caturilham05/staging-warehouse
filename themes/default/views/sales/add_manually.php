@@ -437,7 +437,6 @@ $order_id = !empty($sales) ? json_encode(array_column($sales, 'id')) : [];
     orderIdParse.map((v, i) => {
         $('#shipping_price_text_' + v).on('change', function(){
             let value           = $(this).val();
-            console.log(value)
             let pattern_service = /service\:\s(.*?)\s\|/i
             let result_service  = value.match(pattern_service)
             let pattern_price   = /price\:\s([0-9]+)/i
