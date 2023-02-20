@@ -59,7 +59,7 @@
             <td>Nomor resi</td>
             <td>Kurir Pengiriman</td>
             <td>Service pengiriman yang dimiliki pihak ekspedisi</td>
-            <td>Type pengiriman</td>
+            <td>Type pengiriman (1. <b>COD PICKUP</b> atau <b>PICKUP</b>).</td>
             <td>Harga Produk</td>
             <td>harga pengiriman</td>
             <td>Nama pengirim produk (Pastikan nama pengirim sesuai berdasarkan ejaan kata dan sudah terdaftar di sistem). bisa dilihat di menu <a href="<?= site_url('address_books');?>" target="_blank"><b>Address Books</b></a></td>

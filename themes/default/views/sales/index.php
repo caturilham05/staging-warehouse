@@ -228,6 +228,22 @@
                     //order
 
                     "render": (data, type, row, meta) => {
+                        if (row[37] == 'process')
+                        {
+                            status = '<b>Process</b>';
+                        }
+                        else if (row[37] == 'process packing')
+                        {
+                            status = '<b>Process Packing</b>';
+                        }
+                        else if (row[37] == null)
+                        {
+                            status = '<b>Belum Dikirim</b>';
+                        }
+                        else
+                        {
+                            status = '<b>Dikirim</b>';
+                        }
                         return `         
                     </br>
                     <span style="font-size:16;font-weight:bold;text-align:left;">WAREHOUSE ${row[38]}</span>
@@ -237,7 +253,7 @@
                     </span>
                     </p>
                     <p class="m-0 p-0"> <h6 style="font-size:5;">Dibuat : ${row[8]}</h6></p>
-                    <p class="m-0 p-0"> <h6 style="font-size:5;">Status Packing : ${row[37] === 'process' ? '<b>Process</b>' : (row[37] === null ? '<b>Belum Dikirim</b>' : '<b>Dikirim</b>')}</h6></p>
+                    <p class="m-0 p-0"> <h6 style="font-size:5;">Status Packing : ${status}</h6></p>
                     </div>
                          `;
                     }

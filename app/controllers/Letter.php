@@ -68,7 +68,7 @@ class Letter extends MY_Controller
                 for ($r = 0; $r < $i; $r++) {
                 
                     $awbNo = $_POST['product_id'][$r];
-                    $this->db->update('sales', array('status_packing' => 'sent'), array('awb_no' => $awbNo));
+                    $this->db->update('sales', array('status_packing' => 'sent', 'status' => 'sent'), array('awb_no' => $awbNo));
                         $items[] = array(
                             'travel_document_id' => $travelId,
                             'awb' => $awbNo,

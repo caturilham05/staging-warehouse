@@ -32,18 +32,11 @@ $this->load->helper('function_helper');
                     </div>
                     <div class="col-md-4">
                         <div class="form-group">
-                            <?= lang('Pilih Daerah', 'Pilih Daerah'); ?>
-                            <?php 
-                            $sp[''] = lang('Pilih Daerah');
-                            foreach ($master_location as $value) {
-                                $sp[$value->id] = $value->detail;
-                            }
-                            ?>
-                            <?php if($this->session->userdata('location_id') == null) { ?>
-                            <?= form_dropdown('location_id', $sp, set_value('location_id'), 'class="form-control tip" id="location_id" required="required"'); ?>
-                            <?php } else { ?>
-                                <?= form_dropdown('location_id', $sp, set_value('location_id',$this->session->userdata('location_id')), 'class="form-control tip" id="location_id" disabled="disabled" '); ?>
-                            <?php } ?>
+                            <?php echo lang('Kode Pos', 'Kode Pos'); ?>
+                            <div class="controls">
+                                <?php echo form_input('zip_code', '', 'class="form-control" id="zip_code"'); ?>
+                                <small>masukkan kode pos untuk mengambil data di master location</small>
+                            </div>
                         </div>
                     </div>
                     <div class="col-md-12">

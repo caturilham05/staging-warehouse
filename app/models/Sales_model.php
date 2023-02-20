@@ -24,10 +24,6 @@ class Sales_model extends CI_Model
         return $this->db->get('sales')->result_array();
     }
 
-    public function getSalesByCode($awb)
-    {
-    }
-
     public function getSalesByInvoice($invoice)
     {
         // $q = $this->db->get_where('sales', array('order_no' => $invoice));
@@ -228,6 +224,8 @@ class Sales_model extends CI_Model
         $QTY              = '',
         $GOODS_DESC       = '',
         $DELIVERY_PRICE   = '',
+        $COD_FLAG         = '',
+        $COD_AMOUNT       = '',
         $BOOK_CODE        = 0,
         $SHIPPER_COUNTRY  = 'ID',
         $RECEIVER_COUNTRY = 'ID',
@@ -236,19 +234,20 @@ class Sales_model extends CI_Model
         $BRANCH           = 'BDO000'
     )
     {
-        $BOOK_CODE    = random_int(0000000000000000, 9999999999999999);
-        $SHIPPER_ZIP  = empty($SHIPPER_ZIP) ? 1 : $SHIPPER_ZIP;
-        $jne_url      = 'http://apiv2.jne.co.id:10102/job/direct';
-        $jne_username = $this->config->item('jne_username');
-        $jne_api_key  = $this->config->item('jne_api_key');
-        $jne_username = 'TESTAPI';
-        $jne_api_key  = '25c898a9faea1a100859ecd9ef674548';
-        $header       = [
+        $BOOK_CODE       = random_int(0000000000000000, 9999999999999999);
+        $SHIPPER_ZIP     = empty($SHIPPER_ZIP) ? 1 : $SHIPPER_ZIP;
+        // $jne_url      = 'http://apiv2.jne.co.id:10102/job/direct';
+        $jne_url         = 'https://apiv2.jne.co.id:10206/job/direct';
+        $jne_username    = $this->config->item('jne_username');
+        $jne_api_key     = $this->config->item('jne_api_key');
+        // $jne_username = 'TESTAPI';
+        // $jne_api_key  = '25c898a9faea1a100859ecd9ef674548';
+        $header          = [
             "Content-Type: application/x-www-form-urlencoded",
             "User-Agent: ".$_SERVER['HTTP_USER_AGENT'],
         ];
 
-        $body = 'username='.$jne_username.'&api_key='.$jne_api_key.'&SHIPPER_NAME='.$SHIPPER_NAME.'&SHIPPER_ADDR1='.$SHIPPER_ADDR1.'&SHIPPER_CITY='.$SHIPPER_CITY.'&SHIPPER_ZIP='.$SHIPPER_ZIP.'&SHIPPER_REGION='.$SHIPPER_REGION.'&SHIPPER_COUNTRY='.$SHIPPER_COUNTRY.'&SHIPPER_CONTACT='.$SHIPPER_CONTACT.'&SHIPPER_PHONE='.$SHIPPER_PHONE.'&RECEIVER_NAME='.$RECEIVER_NAME.'&RECEIVER_ADDR1='.$RECEIVER_ADDR1.'&RECEIVER_CITY='.$RECEIVER_CITY.'&RECEIVER_ZIP='.$RECEIVER_ZIP.'&RECEIVER_REGION='.$RECEIVER_REGION.'&RECEIVER_COUNTRY='.$RECEIVER_COUNTRY.'&RECEIVER_CONTACT='.$RECEIVER_CONTACT.'&RECEIVER_PHONE='.$RECEIVER_PHONE.'&ORIGIN_DESC='.$ORIGIN_DESC.'&SERVICE_CODE='.$SERVICE_CODE.'&DESTINATION_DESC='.$DESTINATION_DESC.'&WEIGHT='.$WEIGHT.'&QTY='.$QTY.'&GOODS_DESC='.$GOODS_DESC.'&DELIVERY_PRICE='.$DELIVERY_PRICE.'&BOOK_CODE='.$BOOK_CODE.'&AWB_TYPE='.$AWB_TYPE.'&CUST_ID='.$CUST_ID.'&BRANCH='.$BRANCH;
+        $body = 'username='.$jne_username.'&api_key='.$jne_api_key.'&SHIPPER_NAME='.$SHIPPER_NAME.'&SHIPPER_ADDR1='.$SHIPPER_ADDR1.'&SHIPPER_CITY='.$SHIPPER_CITY.'&SHIPPER_ZIP='.$SHIPPER_ZIP.'&SHIPPER_REGION='.$SHIPPER_REGION.'&SHIPPER_COUNTRY='.$SHIPPER_COUNTRY.'&SHIPPER_CONTACT='.$SHIPPER_CONTACT.'&SHIPPER_PHONE='.$SHIPPER_PHONE.'&RECEIVER_NAME='.$RECEIVER_NAME.'&RECEIVER_ADDR1='.$RECEIVER_ADDR1.'&RECEIVER_CITY='.$RECEIVER_CITY.'&RECEIVER_ZIP='.$RECEIVER_ZIP.'&RECEIVER_REGION='.$RECEIVER_REGION.'&RECEIVER_COUNTRY='.$RECEIVER_COUNTRY.'&RECEIVER_CONTACT='.$RECEIVER_CONTACT.'&RECEIVER_PHONE='.$RECEIVER_PHONE.'&ORIGIN_DESC='.$ORIGIN_DESC.'&SERVICE_CODE='.$SERVICE_CODE.'&DESTINATION_DESC='.$DESTINATION_DESC.'&WEIGHT='.$WEIGHT.'&QTY='.$QTY.'&GOODS_DESC='.$GOODS_DESC.'&DELIVERY_PRICE='.$DELIVERY_PRICE.'&BOOK_CODE='.$BOOK_CODE.'&AWB_TYPE='.$AWB_TYPE.'&CUST_ID='.$CUST_ID.'&BRANCH='.$BRANCH.'&COD_FLAG='.$COD_FLAG.'&COD_AMOUNT='.$COD_AMOUNT;
         $out  = curl_custom($jne_url, $header, $body, 'POST');
         return $out;
     }
@@ -265,26 +264,29 @@ class Sales_model extends CI_Model
                 $master_location = $this->db->get_where('master_locations', ['id' => $address_book['location_id']], 1)->row_array();
                 if (empty($master_location)) return false;
 
-                $sales                = $this->getSalesbyInvoice($post['order_no']);
-                $shipper_city_code    = $sales[0]['shipper_city_code'];
-                $receiver_destination = $sales[0]['receiver_destination'];
-                $shipping_price       = 0;
-                $weight               = 0;
-                $product_quantity     = 0;
+                $sales            = $this->getSalesbyInvoice($post['order_no']);
+                $product_quantity = 0;
 
                 foreach ($post['id'] as $key => $value)
                 {
-                    $shipping_price   += $post['shipping_price'][$key];
-                    $weight           += $sales[$key]['weight'];
                     $product_quantity += $sales[$key]['product_quantity'];
+                }
+
+
+                $params_awb_cod_flag   = '';
+                $params_awb_cod_amount = '';
+                if ($post['type'] == 'COD PICKUP')
+                {
+                    $params_awb_cod_flag   = 'YES';
+                    $params_awb_cod_amount = $post['package_price'];
                 }
 
                 $create_awb = $this->api_jne_create_waybill_model(
                     $address_book['name'],
                     $address_book['address'],
-                    $master_location['title'],
-                    $post['receiver_zip_code'],
-                    $master_location['title'],
+                    $master_location['city_name'],
+                    $master_location['zip_code'],
+                    $master_location['city_name'],
                     $address_book['name'],
                     $address_book['phone'],
                     $post['receiver_name'],
@@ -294,13 +296,15 @@ class Sales_model extends CI_Model
                     $post['receiver_city'],
                     $post['receiver_name'],
                     $post['receiver_phone'],
-                    $shipper_city_code,
-                    $post['service'][0],
-                    $receiver_destination,
-                    $weight,
+                    $master_location['city_name'],
+                    $post['service'],
+                    $post['receiver_city'],
+                    $sales[0]['weight'],
                     $product_quantity,
-                    $sales[0]['goods_description'],
-                    $shipping_price
+                    $post['goods_description'],
+                    $post['shipping_price'],
+                    $params_awb_cod_flag,
+                    $params_awb_cod_amount
                 );
 
                 foreach ($post['id'] as $key => $value)
@@ -319,14 +323,16 @@ class Sales_model extends CI_Model
                         'shipper_name'         => $address_book['name'],
                         'shipper_phone'        => $address_book['phone'],
                         'shipper_address'      => $address_book['address'],
-                        'shipper_city'         => $master_location['title'],
-                        'shipper_subdistrict'  => $master_location['detail'],
-                        'courier'              => !empty($post['courier'][$key]) ? $post['courier'][$key] : '',
-                        'service'              => !empty($post['service'][$key]) ? $post['service'][$key] : '',
-                        'shipping_price'       => !empty($post['shipping_price'][$key]) ? $post['shipping_price'][$key] : 0,
-                        'package_price'        => !empty($post['package_price'][$key]) ? $post['package_price'][$key] : 0,
-                        'type'                 => !empty($post['type'][$key]) ? $post['type'][$key] : '',
-                        'shipping_note'        => !empty($post['shipping_note'][$key]) ? $post['shipping_note'][$key] : '',
+                        'shipper_city'         => $master_location['city_name'],
+                        'shipper_subdistrict'  => $master_location['district_name'],
+                        'shipper_zip_code'     => $master_location['zip_code'],
+                        'courier'              => $post['courier'],
+                        'service'              => $post['service'],
+                        'shipping_price'       => $post['shipping_price'],
+                        'package_price'        => $post['package_price'],
+                        'type'                 => $post['type'],
+                        'shipping_note'        => $post['shipping_note'],
+                        'goods_description'    => $post['goods_description'],
                         'status'               => 'process packing',
                         'status_packing'       => 'process packing',
                     ];
@@ -340,12 +346,10 @@ class Sales_model extends CI_Model
 
                 foreach ($post['product_code'] as $key => $value)
                 {
-                    $product_groups['product_code']      = $value;
-                    $product_groups['product_quantity']  = !empty($post['product_quantity'][$key]) ?  $post['product_quantity'][$key] : 0;
-                    $product_groups['weight']            = !empty($post['weight'][$key]) ?  $post['weight'][$key] : 0;
-                    $product_groups['dimension_size']    = !empty($post['dimension_size'][$key]) ?  $post['dimension_size'][$key] : '';
-                    $product_groups['goods_description'] = !empty($post['goods_description'][$key]) ?  $post['goods_description'][$key] : '';
-                    $product_groups_set[$value]          = $product_groups;
+                    $product_groups['product_code']     = $value;
+                    $product_groups['product_quantity'] = !empty($post['product_quantity'][$key]) ?  $post['product_quantity'][$key] : 0;
+                    $product_groups['weight']           = !empty($post['weight'][$key]) ?  $post['weight'][$key] : 0;
+                    $product_groups_set[$value]         = $product_groups;
                 }
 
                 foreach ($products as $key => $value)
@@ -355,14 +359,12 @@ class Sales_model extends CI_Model
                         'warehouse_id'         => $post['warehouse_id'],
                         'shipper_city_code'    => $post['shipper_city_code'],
                         'receiver_destination' => $post['receiver_destination'],
+                        'weight'               => $post['weight'],
                         'status'               => 'process',
                         'status_packing'       => 'process',
                         'created_date'         => date('Y-m-d H:i:s'),
                         'product_id'           => !empty($product_groups_set[$value['code']]) ? $value['code'] : 0,
                         'product_quantity'     => !empty($product_groups_set[$value['code']]['product_quantity']) ? $product_groups_set[$value['code']]['product_quantity'] : 0,
-                        'weight'               => !empty($product_groups_set[$value['code']]['weight']) ? $product_groups_set[$value['code']]['weight'] : 0,
-                        'dimension_size'       => !empty($product_groups_set[$value['code']]['dimension_size']) ? $product_groups_set[$value['code']]['dimension_size'] : '',
-                        'goods_description'    => !empty($product_groups_set[$value['code']]['goods_description']) ? $product_groups_set[$value['code']]['goods_description'] : '',
                     ];
                 }
             }
@@ -391,5 +393,43 @@ class Sales_model extends CI_Model
 
         $this->db->trans_commit();
         return !empty($is_import) ? $post[0]['order_no'] : $post['order_no'];
+    }
+
+    public function getSalesThisWeeks()
+    {
+        $d          = strtotime("today");
+        $start_week = strtotime("last sunday midnight",$d);
+        $end_week   = strtotime("next saturday",$d);
+        $start      = date("Y-m-d",$start_week); 
+        $end        = date("Y-m-d",$end_week);
+
+        $this->db->select('order_no, SUM(package_price) AS package_price, SUM(product_quantity) AS qty, created_at')->where('DATE(created_at) >=', date('Y-m-d', strtotime($start)))->where('DATE(created_at) <=', date('Y-m-d', strtotime($end)))->group_by('order_no');
+        $q = $this->db->get("sales");
+        if ($q->num_rows() > 0) {
+            foreach ($q->result_array() as $row) {
+                $data[] = $row;
+            }
+            return $data;
+        }
+        return false;
+    }
+
+    public function getSalesLastWeeks()
+    {
+        $previous_week = strtotime("-1 week +1 day");
+        $start_week    = strtotime("last sunday midnight",$previous_week);
+        $end_week      = strtotime("next saturday",$start_week);
+        $start_week    = date("Y-m-d",$start_week);
+        $end_week      = date("Y-m-d",$end_week);
+
+        $this->db->select('order_no, SUM(package_price) AS package_price, SUM(product_quantity) AS qty, created_at')->where('DATE(created_at) >=', date('Y-m-d', strtotime($start_week)))->where('DATE(created_at) <=', date('Y-m-d', strtotime($end_week)))->group_by('order_no');
+        $q = $this->db->get("sales");
+        if ($q->num_rows() > 0) {
+            foreach ($q->result_array() as $row) {
+                $data[] = $row;
+            }
+            return $data;
+        }
+        return false;
     }
 }

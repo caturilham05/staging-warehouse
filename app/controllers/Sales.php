@@ -519,32 +519,32 @@ class Sales extends MY_Controller
                     'rules' => 'required'
                 ),
                 array(
-                    'field' => 'courier[]',
+                    'field' => 'courier',
                     'label' => 'Courier Name',
                     'rules' => 'required'
                 ),
                 array(
-                    'field' => 'service[]',
+                    'field' => 'service',
                     'label' => 'Service',
                     'rules' => 'required'
                 ),
                 array(
-                    'field' => 'type[]',
+                    'field' => 'type',
                     'label' => 'Type',
                     'rules' => 'required'
                 ),
                 array(
-                    'field' => 'package_price[]',
+                    'field' => 'package_price',
                     'label' => 'Package Price',
                     'rules' => 'required|numeric'
                 ),
+                // array(
+                //     'field' => 'shipping_note',
+                //     'label' => 'Shipping Note',
+                //     'rules' => 'required'
+                // ),
                 array(
-                    'field' => 'shipping_note[]',
-                    'label' => 'Shipping Note',
-                    'rules' => 'required'
-                ),
-                array(
-                    'field' => 'shipping_price[]',
+                    'field' => 'shipping_price',
                     'label' => 'Shipping Price',
                     'rules' => 'required|numeric'
                 ),
@@ -656,20 +656,20 @@ class Sales extends MY_Controller
                     'rules' => 'required|numeric'
                 ),
                 array(
-                    'field' => 'weight[]',
+                    'field' => 'weight',
                     'label' => 'Weight (KG)',
                     'rules' => 'required|numeric'
                 ),
-                array(
-                    'field' => 'dimension_size[]',
-                    'label' => 'Length',
-                    'rules' => 'required'
-                ),
-                array(
-                    'field' => 'goods_description[]',
-                    'label' => 'Goods Description',
-                    'rules' => 'required'
-                ),
+                // array(
+                //     'field' => 'dimension_size[]',
+                //     'label' => 'Length',
+                //     'rules' => 'required'
+                // ),
+                // array(
+                //     'field' => 'goods_description[]',
+                //     'label' => 'Goods Description',
+                //     'rules' => 'required'
+                // ),
             );
 
             $this->form_validation->set_rules($config);
@@ -810,9 +810,9 @@ class Sales extends MY_Controller
                         'shipper_name'         => $value[7],
                         'shipper_phone'        => $address_book['phone'],
                         'shipper_address'      => $address_book['address'],
-                        'shipper_city'         => $master_location['title'],
-                        'shipper_subdistrict'  => $master_location['detail'],
-                        'shipper_zip_code'     => $master_location['postcode'],
+                        'shipper_city'         => $master_location['city_name'],
+                        'shipper_subdistrict'  => $master_location['subdistrict_name'],
+                        'shipper_zip_code'     => $master_location['zip_code'],
                         'receiver_name'        => $value[8],
                         'receiver_phone'       => $value[9],
                         'receiver_address'     => $value[10],
@@ -910,11 +910,19 @@ class Sales extends MY_Controller
                 ];
             }
 
+            $params_awb_cod_flag   = '';
+            $params_awb_cod_amount = '';
             foreach ($datas as $key => $value)
             {
                 $product_code           = explode('#', $value['product_id']);
                 $product_quantity       = explode('#', $value['product_quantity']);
                 $product_quantity_total = array_sum($product_quantity);
+
+                if ($value['type'] == 'COD PICKUP')
+                {
+                    $params_awb_cod_flag   = 'YES';
+                    $params_awb_cod_amount = $value['package_price'];
+                }
                 
                 $create_awb = $this->sales_model->api_jne_create_waybill_model(
                     $value['shipper_name'],
@@ -937,7 +945,9 @@ class Sales extends MY_Controller
                     $value['weight'],
                     $product_quantity_total,
                     $value['goods_description'],
-                    $value['shipping_price']
+                    $value['shipping_price'],
+                    $params_awb_cod_flag,
+                    $params_awb_cod_amount
                 );
                 $value['awb_no'] = $create_awb['no_tiket'];
 
@@ -1061,6 +1071,8 @@ class Sales extends MY_Controller
         $QTY              = '',
         $GOODS_DESC       = '',
         $DELIVERY_PRICE   = '',
+        $COD_FLAG         = '',
+        $COD_AMOUNT       = '',
         $BOOK_CODE        = 0,
         $SHIPPER_COUNTRY  = 'ID',
         $RECEIVER_COUNTRY = 'ID',
@@ -1069,19 +1081,20 @@ class Sales extends MY_Controller
         $BRANCH           = 'BDO000'
     )
     {
-        $BOOK_CODE    = random_int(0000000000000000, 9999999999999999);
-        $SHIPPER_ZIP  = empty($SHIPPER_ZIP) ? 1 : $SHIPPER_ZIP;
-        $jne_url      = 'http://apiv2.jne.co.id:10102/job/direct';
-        $jne_username = $this->config->item('jne_username');
-        $jne_api_key  = $this->config->item('jne_api_key');
-        $jne_username = 'TESTAPI';
-        $jne_api_key  = '25c898a9faea1a100859ecd9ef674548';
-        $header       = [
+        $BOOK_CODE       = random_int(0000000000000000, 9999999999999999);
+        $SHIPPER_ZIP     = empty($SHIPPER_ZIP) ? 1 : $SHIPPER_ZIP;
+        // $jne_url      = 'http://apiv2.jne.co.id:10102/job/direct';
+        $jne_url         = 'https://apiv2.jne.co.id:10206/job/direct';
+        $jne_username    = $this->config->item('jne_username');
+        $jne_api_key     = $this->config->item('jne_api_key');
+        // $jne_username = 'TESTAPI';
+        // $jne_api_key  = '25c898a9faea1a100859ecd9ef674548';
+        $header          = [
             "Content-Type: application/x-www-form-urlencoded",
             "User-Agent: ".$_SERVER['HTTP_USER_AGENT'],
         ];
 
-        $body = 'username='.$jne_username.'&api_key='.$jne_api_key.'&SHIPPER_NAME='.$SHIPPER_NAME.'&SHIPPER_ADDR1='.$SHIPPER_ADDR1.'&SHIPPER_CITY='.$SHIPPER_CITY.'&SHIPPER_ZIP='.$SHIPPER_ZIP.'&SHIPPER_REGION='.$SHIPPER_REGION.'&SHIPPER_COUNTRY='.$SHIPPER_COUNTRY.'&SHIPPER_CONTACT='.$SHIPPER_CONTACT.'&SHIPPER_PHONE='.$SHIPPER_PHONE.'&RECEIVER_NAME='.$RECEIVER_NAME.'&RECEIVER_ADDR1='.$RECEIVER_ADDR1.'&RECEIVER_CITY='.$RECEIVER_CITY.'&RECEIVER_ZIP='.$RECEIVER_ZIP.'&RECEIVER_REGION='.$RECEIVER_REGION.'&RECEIVER_COUNTRY='.$RECEIVER_COUNTRY.'&RECEIVER_CONTACT='.$RECEIVER_CONTACT.'&RECEIVER_PHONE='.$RECEIVER_PHONE.'&ORIGIN_DESC='.$ORIGIN_DESC.'&SERVICE_CODE='.$SERVICE_CODE.'&DESTINATION_DESC='.$DESTINATION_DESC.'&WEIGHT='.$WEIGHT.'&QTY='.$QTY.'&GOODS_DESC='.$GOODS_DESC.'&DELIVERY_PRICE='.$DELIVERY_PRICE.'&BOOK_CODE='.$BOOK_CODE.'&AWB_TYPE='.$AWB_TYPE.'&CUST_ID='.$CUST_ID.'&BRANCH='.$BRANCH;
+        $body = 'username='.$jne_username.'&api_key='.$jne_api_key.'&SHIPPER_NAME='.$SHIPPER_NAME.'&SHIPPER_ADDR1='.$SHIPPER_ADDR1.'&SHIPPER_CITY='.$SHIPPER_CITY.'&SHIPPER_ZIP='.$SHIPPER_ZIP.'&SHIPPER_REGION='.$SHIPPER_REGION.'&SHIPPER_COUNTRY='.$SHIPPER_COUNTRY.'&SHIPPER_CONTACT='.$SHIPPER_CONTACT.'&SHIPPER_PHONE='.$SHIPPER_PHONE.'&RECEIVER_NAME='.$RECEIVER_NAME.'&RECEIVER_ADDR1='.$RECEIVER_ADDR1.'&RECEIVER_CITY='.$RECEIVER_CITY.'&RECEIVER_ZIP='.$RECEIVER_ZIP.'&RECEIVER_REGION='.$RECEIVER_REGION.'&RECEIVER_COUNTRY='.$RECEIVER_COUNTRY.'&RECEIVER_CONTACT='.$RECEIVER_CONTACT.'&RECEIVER_PHONE='.$RECEIVER_PHONE.'&ORIGIN_DESC='.$ORIGIN_DESC.'&SERVICE_CODE='.$SERVICE_CODE.'&DESTINATION_DESC='.$DESTINATION_DESC.'&WEIGHT='.$WEIGHT.'&QTY='.$QTY.'&GOODS_DESC='.$GOODS_DESC.'&DELIVERY_PRICE='.$DELIVERY_PRICE.'&BOOK_CODE='.$BOOK_CODE.'&AWB_TYPE='.$AWB_TYPE.'&CUST_ID='.$CUST_ID.'&BRANCH='.$BRANCH.'&COD_FLAG='.$COD_FLAG.'&COD_AMOUNT='.$COD_AMOUNT;
         $out  = curl_custom($jne_url, $header, $body, 'POST');
         return $out;
     }

@@ -47,12 +47,12 @@
 						</li> -->
 						<li class="dropdown">
 							<a data-toggle="dropdown" class="dropdown-toggle" href="#">
-								<i class="fa fa-barcode"></i> <span class="hidden-xs hidden-sm">&nbsp;&nbsp;<?= lang('Address Books'); ?></span>
+								<i class="fa fa-barcode"></i> <span class="hidden-xs hidden-sm">&nbsp;&nbsp;<?= lang('Stock Opname'); ?></span>
 							</a>
 							<ul class="dropdown-menu extended pull-right">
 								<div class="notify-arrow"></div>
-								<li><a href="<?= site_url('address_books'); ?>"><i class="fa fa-list"></i> <?= lang('list_address_books'); ?></a></li>
-								<li><a href="<?= site_url('address_books/add'); ?>"><i class="fa fa-plus"></i> <?= lang('add_address_books'); ?></a></li>
+								<li><a href="<?= site_url('stockopname'); ?>"><i class="fa fa-list"></i> <?= lang('Stock Opname'); ?></a></li>
+								<li><a href="<?= site_url('stockopname/stock_opname_add_view'); ?>"><i class="fa fa-plus"></i> <?= lang('Add Stock Opname'); ?></a></li>
 							</ul>
 						</li>
 						<li class="dropdown">
@@ -118,7 +118,6 @@
 										<i class="fa fa-print"></i> <?= lang('Print Shipping Label'); ?>
 									</a>
 								</li>
-
 								</ul>
 						</li>
 						<li class="dropdown">
@@ -132,6 +131,17 @@
 								</ul>
 						</li>
 						<?php if ($Admin) { ?>
+							<li class="dropdown">
+								<a data-toggle="dropdown" class="dropdown-toggle" href="#">
+									<i class="fa fa-barcode"></i> <span class="hidden-xs hidden-sm">&nbsp;&nbsp;<?= lang('Address Books'); ?></span>
+								</a>
+								<ul class="dropdown-menu extended pull-right">
+									<div class="notify-arrow"></div>
+									<li><a href="<?= site_url('address_books'); ?>"><i class="fa fa-list"></i> <?= lang('list_address_books'); ?></a></li>
+									<li><a href="<?= site_url('address_books/add'); ?>"><i class="fa fa-plus"></i> <?= lang('add_address_books'); ?></a></li>
+									<li><a href="<?= site_url('address_books/import_master_location_view'); ?>"><i class="fa fa-plus"></i> <?= lang('Import Master Location'); ?></a></li>
+								</ul>
+							</li>
 							<li class="dropdown">
 								<a data-toggle="dropdown" class="dropdown-toggle" href="#">
 									<i class="fa fa-users"></i> <span class="hidden-xs hidden-sm"><?= lang('people'); ?></span>

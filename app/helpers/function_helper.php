@@ -10,7 +10,12 @@ function print_custom($value = '')
 
 function invoice_generate()
 {
-	return 'INV/'.date('d/m/y').'/'.random_int(00000000001, 99999999999);
+	return 'INV/'.date('d/m/y').'/'.random_int(00000000000, 99999999999);
+}
+
+function stock_opname_generate()
+{
+	return 'SO/'.date('d/m/y').'/'.random_int(00000000000, 99999999999);
 }
 
 function curl_custom($host = '', $header = array(), $fields = array(), $method = '')

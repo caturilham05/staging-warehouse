@@ -1,5 +1,8 @@
 <?php (defined('BASEPATH')) or exit('No direct script access allowed'); 
 
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+
 class Address_books extends MY_Controller
 {
 	function __construct()
@@ -12,6 +15,7 @@ class Address_books extends MY_Controller
 
     $this->load->library(['form_validation', 'zend']);
     $this->load->model(['address_books_model']);
+		$this->load->helper('function_helper');
     ini_set('display_errors', 1);
 	}
 
@@ -57,7 +61,7 @@ class Address_books extends MY_Controller
       }
       $links .= "</div>";
       $this->load->library('datatables');
-      $this->datatables->select('address_books.id, address_books.location_id, address_books.name, address_books.phone, address_books.address, address_books.created_at, address_books.updated_at,'.$this->db->dbprefix('master_locations').'.detail')->from('address_books')->join('master_locations', 'master_locations.id = address_books.location_id');
+      $this->datatables->select('address_books.id, address_books.location_id, address_books.name, address_books.phone, address_books.address, address_books.created_at, address_books.updated_at,'.$this->db->dbprefix('master_locations').'.province_name, master_locations.city_name, master_locations.district_name, master_locations.subdistrict_name, master_locations.zip_code')->from('address_books')->join('master_locations', 'master_locations.id = address_books.location_id');
       $this->datatables->add_column("Actions", $links, "id");
       echo $this->datatables->generate();
   }
@@ -89,8 +93,8 @@ class Address_books extends MY_Controller
 				'rules' => 'trim|required|min_length[5]|max_length[13]|numeric|is_unique[address_books.phone]'
 			),
 			array(
-				'field' => 'location_id',
-				'label' => 'Pilih Daerah',
+				'field' => 'zip_code',
+				'label' => 'Kode Pos',
 				'rules' => 'trim|required',
 			),
 			array(
@@ -148,10 +152,10 @@ class Address_books extends MY_Controller
 				'field' => 'phone',
 				'label' => 'Nomor HP',
 				'rules' => 'trim|required|min_length[5]|max_length[13]|numeric'
-			),
+			),			
 			array(
-				'field' => 'location_id',
-				'label' => 'Pilih Daerah',
+				'field' => 'zip_code',
+				'label' => 'Kode Pos',
 				'rules' => 'trim|required',
 			),
 			array(
@@ -168,11 +172,14 @@ class Address_books extends MY_Controller
 		$this->form_validation->set_message('numeric', '<span style="color: #fff;"><b>{field} harus berupa angka / number</b></span>');
 		if ($this->form_validation->run() == false)
 		{
+			$address_books   = $this->address_books_model->fetch_address_books_id($id);
+			$master_location = $this->address_books_model->fetch_master_location_id($address_books->location_id);
+
 	    $this->data['error']           = validation_errors() ? validation_errors() : $this->session->flashdata('error');
 	    $this->data['page_title']      = lang('Edit Address Books');
 	    $this->data['page']            = 'edit';
-	    $this->data['data']            = $this->address_books_model->fetch_address_books_id($id);
-	    $this->data['master_location'] = $this->address_books_model->fetch_master_location();
+	    $this->data['data']            = $address_books;
+	    $this->data['master_location'] = $master_location;
 	    $this->page_construct('address_books/edit', $this->data);
 		}
 		else
@@ -227,4 +234,97 @@ class Address_books extends MY_Controller
     }
   }
 
+  public function upload_config_import_master_location($path)
+  {
+    if (!is_dir($path)) mkdir($path, 0777, TRUE);       
+    $config['upload_path']      = './'.$path;       
+    $config['allowed_types']    = 'csv|CSV|xlsx|XLSX|xls|XLS';
+    $config['max_filename']     = '255';
+    $config['encrypt_name']     = TRUE;
+    $config['max_size']         = 0; 
+    $this->load->library('upload', $config);
+  }
+
+  public function import_master_location_view()
+  {
+    set_cookie('ci_csrf_token', 'ci_csrf_token', 128000);
+    $this->data['error']         = validation_errors() ? validation_errors() : $this->session->flashdata('error');
+    $this->data['page_title']    = lang('Master Location Import Excel');
+    $this->page_construct('address_books/import_master_location', $this->data);
+
+    if (!empty($_SESSION['message'])) {
+      unset($_SESSION['message']);
+    }
+  }
+
+
+  public function import_master_location_process()
+  {
+    $path = 'uploads/import_excel_master_location/';
+    $json = [];
+    $this->upload_config_import_master_location($path);
+    if (!$this->upload->do_upload('upload_master_location'))
+    {
+      $this->session->set_flashdata('error', lang("Order gagal ditambahkan"));
+      redirect("address_books/import_master_location_process");
+      return false;
+    }
+    else
+    {
+      $file_data = $this->upload->data();
+      $file_name = $path.$file_data['file_name'];
+      $arr_file  = explode('.', $file_name);
+      $extension = end($arr_file);
+
+      if ('csv' == $extension)
+      {
+        $reader = new \PhpOffice\PhpSpreadsheet\Reader\Csv();
+      }
+      else
+      {
+        $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
+      }
+
+      $spreadsheet = $reader->load($file_name);
+      $sheet_data  = $spreadsheet->getActiveSheet()->toArray();
+      $list        = [];
+
+      foreach($sheet_data as $key => $value)
+      {
+          if($key != 0)
+          {
+          	$list[] = [
+          		'country_name'     => $value[0],
+          		'province_name'    => $value[1],
+          		'city_name'        => $value[2],
+          		'district_name'    => $value[3],
+          		'subdistrict_name' => $value[4],
+          		'zip_code'         => $value[5],
+          		'tarif_code'       => $value[6],
+          	];
+          }
+      }
+
+      if(file_exists($file_name)) unlink($file_name);
+
+      if(count($list) > 0)
+      {
+        $this->db->trans_begin();
+        $this->db->insert_batch('master_locations', $list);
+        if ($this->db->trans_status() === FALSE)
+        {
+            $this->db->trans_rollback();
+            return false;
+        }
+        $this->db->trans_commit();
+        redirect("address_books");
+      }
+      else
+      {
+          $this->session->set_flashdata('error', lang("Order gagal ditambahkan"));
+          redirect("address_books/import_master_location_view");
+          return false;
+      }
+    }
+  }
 }

@@ -29,6 +29,7 @@ class Welcome extends MY_Controller {
             $this->data['data'] = false;
         }
         $this->data['page_title'] = lang('dashboard');
+        $this->data['sales']      = $this->welcome_model->getSalesHistory();
         $this->page_construct('index', $this->data);
 
         if(!empty($_SESSION['message']) || !empty($_SESSION['warning']) || !empty($_SESSION['error'])){

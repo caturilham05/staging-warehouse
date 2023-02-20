@@ -1,4 +1,5 @@
-<?php (defined('BASEPATH')) or exit('No direct script access allowed');?>
+<?php defined('BASEPATH') OR exit('No direct script access allowed');
+?>
 
 <style type="text/css">
     .table td:first-child {
@@ -17,12 +18,10 @@
         text-align: center;
     }
 </style>
-
 <div class="">
-    <h3><i class="fa fa-book"></i> <?= $page_title; ?><a href="<?= site_url('address_books/add') ?>" class="btn btn-primary pull-right"><i class="fa fa-plus"></i> <?= lang('Add Address Books'); ?></a></h3>
+    <h3><?= $page_title; ?></h3>
     <p><?= lang('list_results'); ?></p>
 </div>
-
 <div class="row">
     <div class="col-lg-12">
         <div class="content-panel">
@@ -30,11 +29,11 @@
                 <table id="TTable" class="table table-bordered table-striped cf" style="margin-bottom:5px;">
                     <thead class="cf">
                         <tr>
-                            <th class="col-xs-1"><?= lang('name'); ?></th>
-                            <th class="col-xs-2"><?= lang('phone'); ?></th>
-                            <th class="col-xs-2"><?= lang('address'); ?></th>
-                            <th class="col-xs-1"><?= lang('created'); ?></th>
-                            <th class="col-xs-2"><?= lang('updated'); ?></th>
+                            <th class="col-xs-1"><?= lang('Id'); ?></th>
+                            <th class="col-xs-2"><?= lang('Stock Opname'); ?></th>
+                            <th class="col-xs-2"><?= lang('Warehouse Name'); ?></th>
+                            <th class="col-xs-1"><?= lang('Qty Total'); ?></th>
+                            <th class="col-xs-2"><?= lang('Created'); ?></th>
                             <th class="col-xs-2"><?= lang('actions'); ?></th>
                         </tr>
                     </thead>
@@ -45,11 +44,11 @@
                     </tbody>
                     <tfoot>
                         <tr>
-                            <th class="col-xs-1"><?= lang('name'); ?></th>
-                            <th class="col-xs-2">[<?= lang('phone'); ?>]</th>
-                            <th class="col-xs-2">[<?= lang('address'); ?>]</th>
-                            <th class="col-xs-1">[<?= lang('created'); ?>]</th>
-                            <th class="col-xs-2"><?= lang('updated'); ?></th>
+                            <th class="col-xs-1"><?= lang('Id'); ?></th>
+                            <th class="col-xs-2"><?= lang('Stock Opname'); ?></th>
+                            <th class="col-xs-2"><?= lang('Warehouse Name'); ?></th>
+                            <th class="col-xs-1"><?= lang('Qty Total'); ?></th>
+                            <th class="col-xs-2"><?= lang('Created'); ?></th>
                             <th class="col-xs-2"><?= lang('actions'); ?></th>
                         </tr>
                         <tr>
@@ -77,26 +76,26 @@
           "processing": true,
           "serverSide": true,
           'ajax': {
-              url: '<?= site_url('address_books/address_books_all'); ?>',
+              url: '<?= site_url('stockopname/stock_opname_json'); ?>',
               type: 'POST',
               "data": function(d) {d.<?= $this->security->get_csrf_token_name(); ?> = "<?= $this->security->get_csrf_hash() ?>"; console.log(d)}
           },
           "buttons": [],
           "columns": [
             {
-            	"render": (data, type, row, meta) => { return `${row[2]}`;}
+            	"render": (data, type, row, meta) => { return `${row[0]}`;}
             },
             {
-              "render": (data, type, row, meta) => {return `${row[3]}`;}
+              "render": (data, type, row, meta) => {return `${row[1]}`;}
             },
             {
-              "render": (data, type, row, meta) => {return `${row[10]}` + ", " + `${row[9]}` + ", " + `${row[8]}` + " - " + `${row[7]}` + " (" + `${row[11]}` + ")";}
+              "render": (data, type, row, meta) => {return `${row[5]}`;}
             },
             {
-              "render": (data, type, row, meta) => {return hrld(row[5]);}
+              "render": (data, type, row, meta) => {return row[3];}
             },
             {
-              "render": (data, type, row, meta) => {return row[6] === '0000-00-00 00:00:00' ? 'data belum diupdate' : hrld(row[6]);}
+              "render": (data, type, row, meta) => {return row[4] === '0000-00-00 00:00:00' ? 'data belum diupdate' : hrld(row[4]);}
             },
             {
                 "render": (data, type, row, meta) => {

@@ -1,4 +1,5 @@
-<?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
+<?php (defined('BASEPATH')) OR exit('No direct script access allowed');
+?>
 <script src="<?= $assets ?>js/highcharts.js"></script>
 <?php
 if($data) {
@@ -6,7 +7,7 @@ if($data) {
 	<script type="text/javascript">
 
 		$(document).ready(function () {
-
+			/*Chart Inbound & Outbound*/
 			Highcharts.theme = {
 			   colors: ["#f45b5b", "#8085e9", "#8d4654", "#7798BF", "#aaeeee", "#ff0066", "#eeaaee",
 			      "#55BF3B", "#DF5353", "#7798BF", "#aaeeee"],
@@ -86,7 +87,6 @@ if($data) {
 
 			   // General
 			   background2: '#E0E0E8'
-
 			};
 
 			Highcharts.setOptions(Highcharts.theme);
@@ -126,9 +126,143 @@ if($data) {
 				}
 				]
 			});
-});
-</script>
-<?php
+			/*Chart Inbound & Outbound*/
+
+			/*This Month and Last Month Average*/
+			$('#sales_average').highcharts({
+		    chart: {
+		        type: 'spline'
+		    },
+		    title: {
+		        text: 'Sales History'
+		    },
+		    xAxis: {
+		        categories: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'],
+		    },
+		    yAxis: {
+		        title: {
+		            text: 'Revenue (Million)'
+		        },
+		        min: 0
+		        // max: 100
+		    },
+		    tooltip: {
+		        crosshairs: true,
+		        shared: true
+		    },
+		    plotOptions: {
+		        spline: {
+		            marker: {
+		                radius: 4,
+		                lineColor: '#666666',
+		                lineWidth: 1
+		            }
+		        }
+		    },
+		    series: [{
+		        name: 'This Month\'s Revenue',
+		        marker: {
+		            symbol: 'square'
+		        },
+		        // data: [5.2, 5.7, 8.7, 13.9, 22.8, 17.5, 30]
+		        data: [
+		        	<?php
+		        		foreach ($sales['this'] as $key => $value)
+		        		{
+		        			echo $value['package_price'].', ';
+		        		}
+		        	?>
+		        ]
+
+		    }, {
+		        name: 'Last Month\'s Revenue',
+		        marker: {
+		            symbol: 'diamond'
+		        },
+		        // data: [1.6, 3.3, 5.9, 10.5, 13.2, 2.2, 3.3]
+		        data: [
+		        	<?php
+		        		foreach ($sales['last'] as $key => $value)
+		        		{
+		        			echo $value['package_price'].', ';
+		        		}
+		        	?>
+		        ]
+		    }]
+			})
+
+			/*This Month and Last Month Average*/
+
+			/*Pie Chart*/
+			// Data retrieved from https://netmarketshare.com
+			$('#chart2').highcharts({
+			    chart: {
+			        plotBackgroundColor: null,
+			        plotBorderWidth: null,
+			        plotShadow: false,
+			        type: 'pie'
+			    },
+			    title: {
+			        text: 'Browser market shares in May, 2020',
+			        align: 'left'
+			    },
+			    tooltip: {
+			        pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+			    },
+			    accessibility: {
+			        point: {
+			            valueSuffix: '%'
+			        }
+			    },
+			    plotOptions: {
+			        pie: {
+			            allowPointSelect: true,
+			            cursor: 'pointer',
+			            dataLabels: {
+			                enabled: true,
+			                format: '<b>{point.name}</b>: {point.percentage:.1f} %'
+			            }
+			        }
+			    },
+			    series: [{
+			        name: 'Brands',
+			        colorByPoint: true,
+			        data: [{
+			            name: 'Chrome',
+			            y: 70.67,
+			            sliced: true,
+			            selected: true
+			        }, {
+			            name: 'Edge',
+			            y: 14.77
+			        },  {
+			            name: 'Firefox',
+			            y: 4.86
+			        }, {
+			            name: 'Safari',
+			            y: 2.63
+			        }, {
+			            name: 'Internet Explorer',
+			            y: 1.53
+			        },  {
+			            name: 'Opera',
+			            y: 1.40
+			        }, {
+			            name: 'Sogou Explorer',
+			            y: 0.84
+			        }, {
+			            name: 'QQ',
+			            y: 0.51
+			        }, {
+			            name: 'Other',
+			            y: 2.6
+			        }]
+			    }]
+			})
+			/*Pie Chart*/
+		});
+	</script>
+	<?php
 }
 ?>
 <div class="">
@@ -166,7 +300,41 @@ if($data) {
 					</div>
 				</div>
 			</div>
+			<?php
+				if ($Admin)
+				{
+					?>
+						<div class="row">
+							<div class="col-sm-12">
+								<div class="box box-primary">
+									<div class="box-body">
+										<figure class="highcharts-figure">
+										    <div id="sales_average"></div>
+										</figure>
+									</div>						
+								</div>
+							</div>
+						</div>
 
+						<div class="row">
+							<div class="col-sm-12">
+								<div class="box box-primary">
+									<div class="box-body">
+										<figure class="highcharts-figure">
+										    <div id="chart2"></div>
+										    <p class="highcharts-description">
+										        Pie charts are very popular for showing a compact overview of a
+										        composition or comparison. While they can be harder to read than
+										        column charts, they remain a popular choice for small datasets.
+										    </p>
+										</figure>
+									</div>						
+								</div>
+							</div>
+						</div>
+					<?php
+				}
+			?>
 		</div>
 	</div>
 </div>

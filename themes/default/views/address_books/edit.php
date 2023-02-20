@@ -31,14 +31,11 @@ $this->load->helper('function_helper');
                     </div>
                     <div class="col-md-4">
                         <div class="form-group">
-                            <?= lang('Pilih Daerah', 'Pilih Daerah'); ?>
-                            <?php 
-                            $sp[''] = lang('Pilih Daerah');
-                            foreach ($master_location as $value) {
-                                $sp[$value->id] = $value->detail;
-                            }
-                            ?>
-                            <?= form_dropdown('location_id', $sp, set_value('location_id', $data->location_id), 'class="form-control tip" id="location_id" required="required"'); ?>
+                            <?php echo lang('Kode Pos', 'Kode Pos'); ?>
+                            <div class="controls">
+                                <?php echo form_input('zip_code', $master_location->zip_code, 'class="form-control" id="zip_code"'); ?>
+                                <small>masukkan kode pos untuk mengambil data di master location</small>
+                            </div>
                         </div>
                     </div>
                     <div class="col-md-12">

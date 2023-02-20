@@ -50,10 +50,14 @@ class Address_books_model extends CI_Model
 
     	$this->db->select([
     		'id',
-    		'title',
-    		'detail',
-    		'postcode'
-    	])->like('detail', 'indonesia')->order_by('title ASC');
+    		'country_name',
+    		'province_name',
+    		'city_name',
+            'district_name',
+            'subdistrict_name',
+            'zip_code',
+            'tarif_code'
+    	])->order_by('city_name ASC');
     	$q = $this->db->get("master_locations");
     	if ($q->num_rows() > 0) {
     	    foreach ($q->result() as $row) {
@@ -73,12 +77,21 @@ class Address_books_model extends CI_Model
       return FALSE;
     }
 
+    public function fetch_master_location_zip_code($zip_code = 0)
+    {
+      $q = $this->db->get_where('master_locations', array('zip_code' => $zip_code), 1);
+      if ($q->num_rows() > 0) {
+          return $q->row();
+      }
+      return FALSE;
+    }
+
     public function add_address_books($post)
     {
         $this->load->helper('function_helper');
-
-        $params = [
-            'location_id' => $post['location_id'],
+        $master_location = $this->fetch_master_location_zip_code($post['zip_code']);
+        $params          = [
+            'location_id' => $master_location->id,
             'name'        => $post['name'],
             'phone'       => $post['phone'],
             'address'     => $post['address'],
@@ -94,8 +107,9 @@ class Address_books_model extends CI_Model
 
     public function edit_address_books($post, $id)
     {
-        $params = [
-            'location_id' => $post['location_id'],
+        $master_location = $this->fetch_master_location_zip_code($post['zip_code']);
+        $params          = [
+            'location_id' => $master_location->id,
             'name'        => $post['name'],
             'phone'       => $post['phone'],
             'address'     => $post['address'],

@@ -4,6 +4,8 @@ class Welcome_model extends CI_Model {
 
     public function __construct() {
         parent::__construct();
+        $this->load->helper('function_helper');
+        $this->load->model(['sales_model']);
     }
 
     public function getChartData()
@@ -76,5 +78,14 @@ class Welcome_model extends CI_Model {
         }
         return FALSE;
     }
+
+    public function getSalesHistory()
+    {
+        $this_weeks = $this->sales_model->getSalesThisWeeks();
+        $last_weeks = $this->sales_model->getSalesLastWeeks();
+
+        return ['this' => $this_weeks, 'last' => $last_weeks];
+    }
+
 
 }
