@@ -45,23 +45,57 @@ class Stockopname_model extends CI_Model
     return $stockopname;
   }
 
+  public function stockopname_by_id($stock_opname_id = 0)
+  {
+    $q = $this->db->get_where('stock_opname', array('id' => $stock_opname_id), 1);
+    if ($q->num_rows() > 0) {
+        return $q->row_array();
+    }
+    return FALSE;
+  }
+
   public function add_stockopname($post)
   {
     if (empty($post)) return false;
-    
-    $product = $this->db->select('id, name')->from('items')->where('code', $post['product_code'])->get()->row_array();
-    if (empty($product)) return false;
 
-    $data = [
-      'stock_opname_id' => $post['stock_opname_id'],
-      'product_id'      => $product['id'],
-      'product_code'    => $post['product_code'],
-      'product_name'    => $product['name'],
-      'qty'             => $post['qty'],
-      'status'          => 1
+    $qty_total      = 0;
+    $qty_total_real = 0;
+
+    foreach ($post['product_id'] as $key => $value)
+    {
+      $qty                    = !empty($post['quantity'][$key]) ? $post['quantity'][$key] : 0;
+      $qty_total             += $qty;
+      $product                = $this->db->select('code, name')->from('items')->where('id', $value)->get()->row_array();
+      $product_in_warehouse   = $this->db->select('quantity')->from('item_warehouse')->where('item_id', $value)->where('warehouse_id', $post['warehouse_id'])->get()->row_array();
+      $qty_total_real_product = !empty($product_in_warehouse['quantity']) ? $product_in_warehouse['quantity'] : 0; 
+      $qty_total_real        += $qty_total_real_product; 
+      $datas[]                = [
+        'stock_opname_id' => $post['stock_opname_id'],
+        'product_id'      => $value,
+        'product_code'    => $product['code'],
+        'product_name'    => $product['name'],
+        'qty'             => $qty,
+        'qty_real'        => !empty($product_in_warehouse['quantity']) ? $product_in_warehouse['quantity'] : 0,
+        'status'          => 2
+      ];
+    }
+
+    $data_so = [
+      'qty'            => $qty_total,
+      'qty_real_total' => $qty_total_real,
+      'notes'          => $post['notes'],
+      'status'         => 2
     ];
 
-    $insert = $this->db->insert('stock_opname_product', $data);
-    return $insert;
+    $this->db->trans_begin();
+    $this->db->insert_batch('stock_opname_product', $datas);
+    $this->db->update('stock_opname', $data_so, 'id = '.$post['stock_opname_id']);
+    if ($this->db->trans_status() === FALSE)
+    {
+      $this->db->trans_rollback();
+      return false;
+    }
+    $this->db->trans_commit();
+    return true;
   }
 }

@@ -13,7 +13,7 @@ class Stockopname extends MY_Controller
 
     $this->load->helper('function_helper');
     $this->load->library(['form_validation', 'pagination', 'datatables']);
-    $this->load->model(['warehouses_model', 'items_model', 'stockopname_model']);
+    $this->load->model(['warehouses_model', 'items_model', 'stockopname_model', 'check_out_model']);
 
     ini_set('display_errors', 1);
   }
@@ -30,29 +30,11 @@ class Stockopname extends MY_Controller
 
   public function stock_opname_json()
   {
-    $links = "<div class=''>";
-    $links .= "<div class='btn-group btn-group-justified' role='group'>
-					      <div class='btn-group' role='group'>
-					      	<a onclick=\"window.open('" . site_url('items/single_barcode/$1') . "', 'pos_popup', 'width=900,height=600,menubar=yes,scrollbars=yes,status=no,resizable=yes,screenx=0,screeny=0'); return false;\" href='#' title='" . lang('print_barcodes') . "' class='tip btn btn-default btn-xs'>
-					      		<i class='fa fa-print'></i>
-					      	</a>
-					      </div>
-					      <div class='btn-group' role='group'>
-					      	<a onclick=\"window.open('" . site_url('items/single_label/$1') . "', 'pos_popup', 'width=900,height=600,menubar=yes,scrollbars=yes,status=no,resizable=yes,screenx=0,screeny=0'); return false;\" href='#' title='" . lang('print_labels') . "' class='tip btn btn-default btn-xs'>
-					      	<i class='fa fa-print'></i>
-					      	</a>
-					      </div>";
-
     if ($this->Admin) {
-        $links .= " <div class='btn-group' role='group'>
+        $links .= "<div class='btn-group' role='group'>
 						          <a class=\"btn btn-warning btn-xs tip\" title='" . lang("edit_item") . "' href='" . site_url('items/edit/$1') . "'>
 						          	<i class=\"fa fa-edit\"></i>
 						          </a>
-						        </div>
-						        <div class='btn-group' role='group'>
-						        	<a href='#' class='btn btn-danger btn-xs tip po' title='<b>" . lang("delete_item") . "</b>' data-content=\"<p>" . lang('r_u_sure') . "</p>
-						        	<a class='btn btn-danger po-delete' href='" . site_url('items/delete/$1') . "'>" . lang('i_m_sure') . "</a>
-						        	<button class='btn po-close'>" . lang('no') . "</button>\"  rel='popover'><i class=\"fa fa-trash-o\"></i></a>
 						        </div>";
     }
     $links .= "</div>";
@@ -61,6 +43,8 @@ class Stockopname extends MY_Controller
     	stock_opname.stock_opname,
     	stock_opname.warehouse_id,
     	stock_opname.qty,
+    	stock_opname.qty_real_total,
+    	stock_opname.notes,
     	stock_opname.created_at,
     	warehouses.name'
     )->from('stock_opname')->join('warehouses', 'warehouses.id = stock_opname.warehouse_id');
@@ -96,6 +80,8 @@ class Stockopname extends MY_Controller
       redirect('stockopname');
       return;
 		}
+
+		redirect('stockopname/stock_opname_process_view/'.$so_id);
 
 		$config = array(
 			array(
@@ -135,14 +121,14 @@ class Stockopname extends MY_Controller
   {
 		$config = array(
 			array(
-				'field' => 'product_code',
-				'label' => 'Product Code',
-				'rules' => 'required'
+				'field' => 'product_id[]',
+				'label' => 'Product Id',
+				'rules' => 'required|numeric'
 			),
 			array(
-				'field' => 'qty',
+				'field' => 'quantity[]',
 				'label' => 'Qty',
-				'rules' => 'required|numeric'
+				'rules' => 'required|is_natural_no_zero'
 			)
 		);
 
@@ -155,7 +141,8 @@ class Stockopname extends MY_Controller
 	    $this->data['error']           = validation_errors() ? validation_errors() : $this->session->flashdata('error');
 	    $this->data['page_title']      = lang('Continue Process Stock Opname');
 	    $this->data['warehouse']       = !empty($this->session->userdata('warehouse_id')) ? $this->warehouses_model->getWarehouseById($this->session->userdata('warehouse_id')) : $this->warehouses_model->fetch_warehouses();
-	    $this->data['stock_opname_id'] = $stock_opname_id;;
+	    $this->data['stock_opname_id'] = $stock_opname_id;
+	    $this->data['so_data'] 				 = $this->db->select('stock_opname')->from('stock_opname')->where('id', $stock_opname_id)->get()->row_array();
 	    $this->page_construct('stockopname/add', $this->data);			
 		}
 		else
@@ -180,6 +167,40 @@ class Stockopname extends MY_Controller
 		}
 
     $this->session->set_flashdata('message', lang("berhasil membuat stock opname"));
-    redirect('stockopname/stock_opname_process_view/'.$post['stock_opname_id']);
+    redirect('stockopname');
+  }
+
+  public function suggestions()
+  {
+  	$warehouse_id 				= $this->session->userdata('warehouse_id');
+  	$post         				= $this->input->get('term', true);
+    $rows                 = $this->check_out_model->getProductNames($term);
+
+    if ($rows) {
+        foreach ($rows as $row) {
+				    $qty_real 		 = $this->db->select('quantity')->from('item_warehouse')->where('item_id', $row->id)->where('warehouse_id', $warehouse_id)->get()->row_array();
+            $row->qty_real = $qty_real['quantity'];
+            $row->qty      = 1;
+            $pr[]          = array('id' => $row->id, 'label' => $row->name . " (" . $row->code . ")", 'row' => $row);
+        }
+        echo json_encode($pr);
+    } else {
+        echo json_encode(array(array('id' => 0, 'label' => lang('no_match_found'), 'value' => $term)));
+    }
+  }
+
+  public function stockopname_detail($stock_opname_id = 0)
+  {
+  	$stockopname          = $this->stockopname_model->stockopname_by_id($stock_opname_id);
+  	$stockopname_products = $this->db->select('*')->from('stock_opname_product')->where('stock_opname_id', $stockopname['id'])->get()->result_array();
+  	
+  	foreach ($stockopname_products as $key => $value) $stockopname['products'][$key] = $value;
+
+    $this->data['error']       = validation_errors() ? validation_errors() : $this->session->flashdata('error');
+    $this->data['page_title']  = lang('Stockopname List');
+    $this->data['stockopname'] = $this->stockopname_model->stockopname_by_id($stock_opname_id);
+    $this->page_construct('stockopname/detail', $this->data);
+    
+    if(!empty($_SESSION['message'])){unset($_SESSION['message']); }
   }
 }

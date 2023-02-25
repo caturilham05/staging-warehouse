@@ -236,6 +236,8 @@ class Sales_model extends CI_Model
     {
         $BOOK_CODE       = random_int(0000000000000000, 9999999999999999);
         $SHIPPER_ZIP     = empty($SHIPPER_ZIP) ? 1 : $SHIPPER_ZIP;
+        $SHIPPER_ADDR1   = strlen($SHIPPER_ADDR1) > 30 ? $SHIPPER_CITY : $SHIPPER_ADDR1;
+        $RECEIVER_ADDR1  = strlen($RECEIVER_ADDR1) > 30 ? $RECEIVER_CITY : $RECEIVER_ADDR1;
         // $jne_url      = 'http://apiv2.jne.co.id:10102/job/direct';
         $jne_url         = 'https://apiv2.jne.co.id:10206/job/direct';
         $jne_username    = $this->config->item('jne_username');

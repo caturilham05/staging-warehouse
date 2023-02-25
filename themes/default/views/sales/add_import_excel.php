@@ -29,7 +29,6 @@
             <th>R</th>
             <th>S</th>
             <th>T</th>
-            <th>U</th>
         </tr>
         <tr>
             <td><b>Warehouse(*)</b></td>
@@ -38,7 +37,6 @@
             <td><b>Service(**)</b></td>
             <td><b>Type(*)</b></td>
             <td><b>Package Price(*)</b></td>
-            <td><b>Shipping Price(*)</b></td>
             <td><b>Shipper Name(*)</b></td>
             <td><b>Receiver Name(*)</b></td>
             <td><b>Receiver Phone(*)</b></td>
@@ -61,7 +59,6 @@
             <td>Service pengiriman yang dimiliki pihak ekspedisi</td>
             <td>Type pengiriman (1. <b>COD PICKUP</b> atau <b>PICKUP</b>).</td>
             <td>Harga Produk</td>
-            <td>harga pengiriman</td>
             <td>Nama pengirim produk (Pastikan nama pengirim sesuai berdasarkan ejaan kata dan sudah terdaftar di sistem). bisa dilihat di menu <a href="<?= site_url('address_books');?>" target="_blank"><b>Address Books</b></a></td>
             <td>Nama penerima produk</td>
             <td>Nomor HP penerima produk</td>

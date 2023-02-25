@@ -1,6 +1,9 @@
 <?php (defined('BASEPATH')) or exit('No direct script access allowed');
 $this->load->helper('function_helper');
-$order_id = !empty($sales) ? json_encode(array_column($sales, 'id')) : [];
+$order_id            = !empty($sales) ? json_encode(array_column($sales, 'id')) : [];
+$product_name_concat = !empty($sales) ? array_column($sales, 'product_name') : [];
+$product_name_concat = !empty($sales) ? implode(',', $product_name_concat) : '';
+
 ?>
 <?php
     if (empty($page_ekspedition_process))
@@ -302,8 +305,7 @@ $order_id = !empty($sales) ? json_encode(array_column($sales, 'id')) : [];
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <?= lang('Goods Description', 'Goods Description'); ?>
-                                            <?= form_textarea('goods_description', '', 'class="form-control tip" id="goods_description" placeholder="Goods Description" required'); ?>
-                                            <small>this field is required in the awb build parameters</small>
+                                            <?= form_textarea('goods_description', $product_name_concat, 'class="form-control tip" id="goods_description" placeholder="Goods Description" readonly'); ?>
                                         </div>
                                     </div>
                                     <?php
@@ -444,21 +446,6 @@ $order_id = !empty($sales) ? json_encode(array_column($sales, 'id')) : [];
                                     '<input type="number" name="product_quantity[]" value=""  class="form-control tip" id="product_quantity" placeholder="Qty"/>'+
                                 '</div>'+
                             '</div>'+
-                            // '<div class="col-md-2">'+
-                            //     '<div class="form-group">'+
-                            //         '<input type="number" name="weight[]" value=""  class="form-control tip" id="weight" placeholder="Weight (KG)"/>'+
-                            //     '</div>'+
-                            // '</div>'+
-                            // '<div class="col-md-3">'+
-                            //     '<div class="form-group">'+
-                            //         '<input type="text" name="dimension_size[]" value=""  class="form-control tip" id="dimension_size" placeholder="Length (1x1x1 cm)"/>'+
-                            //     '</div>'+
-                            // '</div>'+
-                            // '<div class="col-md-3">'+
-                            //     '<div class="form-group">'+
-                            //         '<input type="text" name="goods_description[]" value=""  class="form-control tip" id="goods_description" placeholder="Goods Description"/>'+
-                            //     '</div>'+
-                            // '</div>'+
                         '</div>'+
                         '<hr>'
                     );
@@ -477,19 +464,6 @@ $order_id = !empty($sales) ? json_encode(array_column($sales, 'id')) : [];
         let result_price    = value.match(pattern_price)
         $('#service').val(result_service[1])
         $('#shipping_price').val(result_price[1])
-    })
-    // orderIdParse.map((v, i) => {
-    //     $('#shipping_price_text_' + v).on('change', function(){
-    //         let value           = $(this).val();
-    //         let pattern_service = /service\:\s(.*?)\s\|/i
-    //         let result_service  = value.match(pattern_service)
-    //         let pattern_price   = /price\:\s([0-9]+)/i
-    //         let result_price    = value.match(pattern_price)
-    //         console.log(result_service)
-    //         $('#service_' + v).val(result_service[1])
-    //         $('#shipping_price_' + v).val(result_price[1])
-    //     })
-    // })
-    
+    })    
 </script>
 <script src="<?= $assets ?>js/stin.js" type="text/javascript"></script>

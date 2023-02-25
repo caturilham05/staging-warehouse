@@ -794,7 +794,7 @@ class Sales extends MY_Controller
             {
                 if($key != 0)
                 {
-                    $address_book    = $this->address_books_model->address_books_by_id($value[7]);
+                    $address_book    = $this->address_books_model->address_books_by_id($value[6]);
                     $master_location = $this->db->get_where('master_locations', ['id' => $address_book['location_id']], 1)->row_array();
                     $list[]          = [
                         'warehouse_id'         => $this->warehouses_model->getWarehouseByName($value[0]),
@@ -805,27 +805,26 @@ class Sales extends MY_Controller
                         'service'              => $value[3],
                         'type'                 => $value[4],
                         'package_price'        => $value[5],
-                        'shipping_price'       => $value[6],
                         'shipper_id'           => $address_book['id'],
-                        'shipper_name'         => $value[7],
+                        'shipper_name'         => $value[6],
                         'shipper_phone'        => $address_book['phone'],
                         'shipper_address'      => $address_book['address'],
                         'shipper_city'         => $master_location['city_name'],
                         'shipper_subdistrict'  => $master_location['subdistrict_name'],
                         'shipper_zip_code'     => $master_location['zip_code'],
-                        'receiver_name'        => $value[8],
-                        'receiver_phone'       => $value[9],
-                        'receiver_address'     => $value[10],
-                        'receiver_city'        => $value[11],
-                        'receiver_subdistrict' => $value[12],
-                        'receiver_zip_code'    => $value[13],
-                        'goods_description'    => $value[14],
-                        'weight'               => $value[15],
-                        'dimension_size'       => $value[16],
-                        'shipping_note'        => $value[17],
-                        'last_tracking_status' => $value[18],
-                        'product_id'           => $value[19],
-                        'product_quantity'     => $value[20],
+                        'receiver_name'        => $value[7],
+                        'receiver_phone'       => $value[8],
+                        'receiver_address'     => $value[9],
+                        'receiver_city'        => $value[10],
+                        'receiver_subdistrict' => $value[11],
+                        'receiver_zip_code'    => $value[12],
+                        'goods_description'    => $value[13],
+                        'weight'               => $value[14],
+                        'dimension_size'       => $value[15],
+                        'shipping_note'        => $value[16],
+                        'last_tracking_status' => $value[17],
+                        'product_id'           => $value[18],
+                        'product_quantity'     => $value[19],
                     ];
                 }
             }
@@ -907,6 +906,7 @@ class Sales extends MY_Controller
                     'shipping_price'       => $_POST['shipping_price'][$key],
                     'status'               => 'process packing',
                     'status_packing'       => 'process packing',
+                    'created_date'         => date('Y-m-d H:i:s'),
                 ];
             }
 
@@ -939,9 +939,9 @@ class Sales extends MY_Controller
                     $value['receiver_city'],
                     $value['receiver_name'],
                     $value['receiver_phone'],
-                    $value['shipper_city_code'],
+                    $value['shipper_city'],
                     $value['service'],
-                    $value['receiver_destination'],
+                    $value['receiver_city'],
                     $value['weight'],
                     $product_quantity_total,
                     $value['goods_description'],
@@ -1040,12 +1040,16 @@ class Sales extends MY_Controller
 
     public function api_jne_price_json()
     {
-        $origin      = !empty($_GET['origin']) ? $_GET['origin'] : '';
-        $destination = !empty($_GET['destination']) ? $_GET['destination'] : '';
-        $weight      = !empty($_GET['weight']) ? $_GET['weight'] : 0;
-        if (empty($origin) || empty($destination) || empty($weight)) return false;
+        $shipper_city  = !empty($_GET['shipper_city']) ? trim($_GET['shipper_city']) : '';
+        $receiver_city = !empty($_GET['receiver_city']) ? trim($_GET['receiver_city']) : '';
+        $weight        = !empty($_GET['weight']) ? intval($_GET['weight']) : 0;
+        
+        if (empty($shipper_city) || empty($receiver_city) || empty($weight)) return false;
 
-        $return = $this->api_jne_price($origin, $destination, $weight);
+        $shipper_origin_code = $this->db->select('origin_code')->from('origin_code_jne')->where('origin_name', $shipper_city)->get()->row_array();
+        $receiver_destination_code = $this->db->select('tarif_code')->from('master_locations')->where('city_name', $receiver_city)->get()->row_array();
+        
+        $return = $this->api_jne_price($shipper_origin_code['origin_code'], $receiver_destination_code['tarif_code'], $weight);
         echo json_encode($return);
     }
 

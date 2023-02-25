@@ -18,7 +18,7 @@
       					<th>Shipper Origin Address</th>
       					<th>Receiver Destination</th>
       					<th>Service Expedition</th>
-      					<th>Service</th>
+      					<!-- <th>Service</th> -->
       					<th>Shipping Price</th>
       				</tr>
       			</thead>
@@ -26,8 +26,11 @@
       				<?php
 	      				foreach ($data as $key => $value)
 	      				{
-	      					$get_key[$key]['order_key'] = $key;
-	      					$get_key[$key]['weight']    = $value['weight'];
+	      					$get_key[$key]['order_key']     = $key;
+	      					$get_key[$key]['shipper_city']  = $value['shipper_city'];
+	      					$get_key[$key]['receiver_city'] = $value['receiver_city'];
+	      					$get_key[$key]['service']       = $value['service'];
+	      					$get_key[$key]['weight']        = $value['weight'];
 	      					?>
 	      						<tr>
 					      			<td>
@@ -135,32 +138,60 @@
 	      							</td>
 	      							<td>
                           <div class="form-group">
-                              <?php 
+                            <?php
+                              if (empty($value['service']))
+                              {
+	                              $jne_origin_data[''] = lang('Select Shippier Origin Address');
+	                              foreach ($jne_origin['origin'] as $jne_origin_v) $jne_origin_data[$jne_origin_v['City_Code']] = $jne_origin_v['City_Name'].' (Code: '.$jne_origin_v['City_Code'].')';
+	                              ?>
+		                      			<?= form_dropdown('shipper_city_code[]', $jne_origin_data, set_value('shipper_city_code'), 'class="form-control tip" id="shipper_city_code_'.$key.'" required="required"'); ?> -->
+	                              <?php
+                              }
+                              else
+                              {
+                              	?>
+                              	<span id="origin_code_<?= $key?>"><?= $value['shipper_city']?></span>
+                              	<?php
+                              }
+                            ?>
+
+                            <!-- <?php 
                               $jne_origin_data[''] = lang('Select Shippier Origin Address');
-                              foreach ($jne_origin['origin'] as $value) $jne_origin_data[$value['City_Code']] = $value['City_Name'].' (Code: '.$value['City_Code'].')';
-                              ?>
-                              <?= form_dropdown('shipper_city_code[]', $jne_origin_data, set_value('shipper_city_code'), 'class="form-control tip" id="shipper_city_code_'.$key.'" required="required"'); ?>
+                              foreach ($jne_origin['origin'] as $jne_origin_v) $jne_origin_data[$jne_origin_v['City_Code']] = $jne_origin_v['City_Name'].' (Code: '.$jne_origin_v['City_Code'].')';
+                            ?>
+                      			<?= form_dropdown('shipper_city_code[]', $jne_origin_data, set_value('shipper_city_code'), 'class="form-control tip" id="shipper_city_code_'.$key.'" required="required"'); ?> -->
                           </div>
 	      							</td>
 	      							<td>
                           <div class="form-group">
-                              <?php 
-                              $jne_destination_data[''] = lang('Receiver Destination');
-                              foreach ($jne_destination['destination'] as $value) $jne_destination_data[$value['City_Code']] = $value['City_Name'].' (Code: '.$value['City_Code'].')';
-                              ?>
-                              <?= form_dropdown('receiver_destination[]', $jne_destination_data, set_value('receiver_destination'), 'class="form-control tip" id="receiver_destination_'.$key.'" required="required"'); ?>
+                            <?php
+                              if (empty($value['service']))
+                              {
+	                              $jne_destination_data[''] = lang('Receiver Destination');
+	                              foreach ($jne_destination['destination'] as $jne_destination_v) $jne_destination_data[$jne_destination_v['City_Code']] = $jne_destination_v['City_Name'].' (Code: '.$jne_destination_v['City_Code'].')';
+	                              ?>
+		                              <?= form_dropdown('receiver_destination[]', $jne_destination_data, set_value('receiver_destination'), 'class="form-control tip" id="receiver_destination_'.$key.'" required="required"'); ?>
+	                              <?php
+                              }
+                              else
+                              {
+                              	?>
+                              	<span id="destination_code_<?= $key?>"><?= $value['receiver_city']?></span>
+                              	<?php
+                              }
+                            ?>
                           </div>
 	      							</td>
-                      <td>
+                      <!-- <td>
                           <div class="form-group">
 														<select name="service_shipping_price[]" id="service_shipping_price_<?php echo $key?>">
 														  <option value="">Select Service Expedition</option>
 														</select>
                           </div>
-                      </td>
+                      </td> -->
                       <td>
                           <div class="form-group">
-                              <?= form_input('service[]', '', 'class="form-control tip" id="service_'.$key.'" placeholder="Service" readonly'); ?>
+                              <?= form_input('service[]', !empty($value['service']) ? $value['service'] : '', 'class="form-control tip" id="service_'.$key.'" placeholder="Service" readonly'); ?>
                           </div>
                       </td>
                       <td>
@@ -237,46 +268,87 @@
 	let orderKeyParse = JSON.parse(orderKey);
 	
 	$(document).ready(function(){
-
 		orderKeyParse.map((v) => {
-			$('#shipper_city_code_' + v.order_key).on('change', function(e){
-				getShipperCityCode = $(this).val();
-				console.log(getShipperCityCode)
-			})
+			shipperCity  = v.shipper_city;
+			receiverCity = v.receiver_city;
+			service      = v.service;
+			getWeight    = v.weight;
 
-			$('#receiver_destination_' + v.order_key).on('change', function(){
-				getDestination           = $(this).val()
-				getShipperCityCodeChange = $('#shipper_city_code_' + v.order_key).val();
-				getWeight                = v.weight;
-				$.ajax({
-					url: '<?php echo site_url('sales/api_jne_price_json')?>',
-					type:'GET',
-					data: {
-						"origin": getShipperCityCodeChange,
-						"destination": getDestination,
-						"weight": getWeight
-					},
-					dataType: "json",
-					success:function(result){
-						if (result.length !== 0)
-						{
-							result.map((v_result) => {
-								$('#service_shipping_price_' + v.order_key).append('<option value="'+ v_result.service_display +' | '+ v_result.price +'">'+v_result.service_display+' | '+v_result.price+'</option>')
-								$('#service_shipping_price_' + v.order_key).on('change', function(){
-									let service_shipping_price         = $(this).val();
-									let service_shipping_price_explode = service_shipping_price.split(' | ')
-									// let pattern_service             = /[A-Za-z]+/i
-									// let result_service              = service_shipping_price.match(pattern_service)
-									// let pattern_price               = /[0-9]+/i
-									// let result_price                = service_shipping_price.match(pattern_price)
-									$('#service_' + v.order_key).val(service_shipping_price_explode[0])
-									$('#shipping_price_' + v.order_key).val(service_shipping_price_explode[1])
-								})
-							})
-						}
+			$.ajax({
+				url: '<?php echo site_url('sales/api_jne_price_json')?>',
+				type:'GET',
+				data: {
+					"shipper_city": shipperCity,
+					"receiver_city": receiverCity,
+					"weight": getWeight
+				},
+				dataType: "json",
+				success:function(result){
+					if (result.length !== 0)
+					{
+						// let attendanceFilter = result.attendances.filter((v) => v.status == attendance_status);
+						let servicePrice = result.filter((v_result) => v_result.service_display == service ? v_result.price : 0);
+						console.log(servicePrice)
+						$('#shipping_price_' + v.order_key).val(servicePrice == 0 ? 0 : servicePrice[0].price)
+						$('#_' + v.order_key).val(servicePrice == 0 ? 0 : servicePrice[0].price)
+
+						// result.map((v_result) => {
+						// 	$('#service_shipping_price_' + v.order_key).append('<option value="'+ v_result.service_display +' | '+ v_result.price +'">'+v_result.service_display+' | '+v_result.price+'</option>')
+						// 	$('#service_shipping_price_' + v.order_key).on('change', function(){
+						// 		let service_shipping_price         = $(this).val();
+						// 		let service_shipping_price_explode = service_shipping_price.split(' | ')
+						// 		// let pattern_service             = /[A-Za-z]+/i
+						// 		// let result_service              = service_shipping_price.match(pattern_service)
+						// 		// let pattern_price               = /[0-9]+/i
+						// 		// let result_price                = service_shipping_price.match(pattern_price)
+						// 		$('#service_' + v.order_key).val(service_shipping_price_explode[0])
+						// 		$('#shipping_price_' + v.order_key).val(service_shipping_price_explode[1])
+						// 	})
+						// })
 					}
-				})
+				}
 			})
 		})
+
+		// orderKeyParse.map((v) => {
+		// 	$('#shipper_city_code_' + v.order_key).on('change', function(e){
+		// 		getShipperCityCode = $(this).val();
+		// 		console.log(getShipperCityCode)
+		// 	})
+
+		// 	$('#receiver_destination_' + v.order_key).on('change', function(){
+		// 		getDestination           = $(this).val()
+		// 		getShipperCityCodeChange = $('#shipper_city_code_' + v.order_key).val();
+		// 		getWeight                = v.weight;
+				// $.ajax({
+				// 	url: '<?php echo site_url('sales/api_jne_price_json')?>',
+				// 	type:'GET',
+				// 	data: {
+				// 		"origin": getShipperCityCodeChange,
+				// 		"destination": getDestination,
+				// 		"weight": getWeight
+				// 	},
+				// 	dataType: "json",
+				// 	success:function(result){
+				// 		if (result.length !== 0)
+				// 		{
+				// 			result.map((v_result) => {
+				// 				$('#service_shipping_price_' + v.order_key).append('<option value="'+ v_result.service_display +' | '+ v_result.price +'">'+v_result.service_display+' | '+v_result.price+'</option>')
+				// 				$('#service_shipping_price_' + v.order_key).on('change', function(){
+				// 					let service_shipping_price         = $(this).val();
+				// 					let service_shipping_price_explode = service_shipping_price.split(' | ')
+				// 					// let pattern_service             = /[A-Za-z]+/i
+				// 					// let result_service              = service_shipping_price.match(pattern_service)
+				// 					// let pattern_price               = /[0-9]+/i
+				// 					// let result_price                = service_shipping_price.match(pattern_price)
+				// 					$('#service_' + v.order_key).val(service_shipping_price_explode[0])
+				// 					$('#shipping_price_' + v.order_key).val(service_shipping_price_explode[1])
+				// 				})
+				// 			})
+				// 		}
+				// 	}
+				// })
+		// 	})
+		// })
 	})
 </script>

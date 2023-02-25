@@ -33,6 +33,8 @@
                             <th class="col-xs-2"><?= lang('Stock Opname'); ?></th>
                             <th class="col-xs-2"><?= lang('Warehouse Name'); ?></th>
                             <th class="col-xs-1"><?= lang('Qty Total'); ?></th>
+                            <th class="col-xs-1"><?= lang('Qty Real'); ?></th>
+                            <th class="col-xs-1"><?= lang('Notes'); ?></th>
                             <th class="col-xs-2"><?= lang('Created'); ?></th>
                             <th class="col-xs-2"><?= lang('actions'); ?></th>
                         </tr>
@@ -48,6 +50,8 @@
                             <th class="col-xs-2"><?= lang('Stock Opname'); ?></th>
                             <th class="col-xs-2"><?= lang('Warehouse Name'); ?></th>
                             <th class="col-xs-1"><?= lang('Qty Total'); ?></th>
+                            <th class="col-xs-1"><?= lang('Qty Real'); ?></th>
+                            <th class="col-xs-1"><?= lang('Qty Notes'); ?></th>
                             <th class="col-xs-2"><?= lang('Created'); ?></th>
                             <th class="col-xs-2"><?= lang('actions'); ?></th>
                         </tr>
@@ -61,10 +65,11 @@
     </div>
 </div>
 <script type="text/javascript">
-    const delete_items = '<?= base_url('address_books/delete/') ?>'
+    const delete_items = '<?= base_url('/delete/') ?>'
     const edit_items = '<?= base_url('address_books/edit/') ?>'
     var detail_table;
     const formAdd = document.getElementById('formAdd');
+    const detail = '<?= base_url('stockopname/stockopname_detail/'); ?>';
 
     $(document).ready(function() {
       var table = $('#TTable').DataTable({
@@ -89,38 +94,28 @@
               "render": (data, type, row, meta) => {return `${row[1]}`;}
             },
             {
-              "render": (data, type, row, meta) => {return `${row[5]}`;}
+              "render": (data, type, row, meta) => {return `${row[7]}`;}
             },
             {
               "render": (data, type, row, meta) => {return row[3];}
             },
             {
-              "render": (data, type, row, meta) => {return row[4] === '0000-00-00 00:00:00' ? 'data belum diupdate' : hrld(row[4]);}
+              "render": (data, type, row, meta) => {return row[4];}
+            },
+            {
+              "render": (data, type, row, meta) => {return row[5];}
+            },
+            {
+              "render": (data, type, row, meta) => {return row[6] === '0000-00-00 00:00:00' ? 'data belum diupdate' : hrld(row[6]);}
             },
             {
                 "render": (data, type, row, meta) => {
                     return `    
-                    <!-- edit button -->
-                    <div class='btn-group' role='group'>
-                        <a class='tip btn btn-warning btn-sm' 
-                            title="Edit Item"
-                            href='${edit_items}${row[0]}'>
-                            <i class='fa fa-edit'></i>
-                        </a>
-                    </div>
-
-                    <!-- delete button -->
-                    <div class='btn-group div-confirm' role='group'>
-                        <a href='#' class='btn btn-danger  btn-sm tip po btn-delete'
-                            title="Delete Item"
-                            data-content="<p>Are you sure?</p><a class='btn btn-danger po-delete' 
-                            href='${delete_items}${row[0]}'>
-                            I'm Sure</a>
-                            <button class='btn po-close'>No</button>" rel='popover'>
-                            <i class='fa fa-trash-o'></i>
-                        </a>
-                    </div>
-                    </div>`;
+                        <!-- delete button -->
+                        <div class='btn-group' role='group'>
+                            <a href="${detail}${row[0]}" class="btn btn-info">Detail</a>
+                        </div>
+                    `;
                 }
             }
           ],

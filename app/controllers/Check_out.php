@@ -412,11 +412,14 @@ class Check_out extends MY_Controller {
 
     function suggestions()
     {
+        $warehouse_id               = $this->session->userdata('warehouse_id');
         $term = $this->input->get('term', TRUE);
 
         $rows = $this->check_out_model->getProductNames($term);
         if ($rows) {
             foreach ($rows as $row) {
+                $qty_real        = $this->db->select('quantity')->from('item_warehouse')->where('item_id', $row->id)->where('warehouse_id', $warehouse_id)->get()->row_array();
+                $row->qty_real = $qty_real['quantity'];
                 $row->qty = 1;
                 $pr[] = array('id' => $row->id, 'label' => $row->name . " (" . $row->code . ")", 'row' => $row);
             }
