@@ -33,8 +33,16 @@
                             <th class="col-xs-2"><?= lang('Stock Opname'); ?></th>
                             <th class="col-xs-2"><?= lang('Warehouse Name'); ?></th>
                             <th class="col-xs-1"><?= lang('Qty Total'); ?></th>
-                            <th class="col-xs-1"><?= lang('Qty Real'); ?></th>
+                            <?php
+                                if (!empty($Admin))
+                                {
+                                    ?>
+                                        <th class="col-xs-1"><?= lang('Qty Real'); ?></th>
+                                    <?php
+                                }
+                            ?>
                             <th class="col-xs-1"><?= lang('Notes'); ?></th>
+                            <th class="col-xs-1"><?= lang('Status'); ?></th>
                             <th class="col-xs-2"><?= lang('Created'); ?></th>
                             <th class="col-xs-2"><?= lang('actions'); ?></th>
                         </tr>
@@ -50,8 +58,16 @@
                             <th class="col-xs-2"><?= lang('Stock Opname'); ?></th>
                             <th class="col-xs-2"><?= lang('Warehouse Name'); ?></th>
                             <th class="col-xs-1"><?= lang('Qty Total'); ?></th>
-                            <th class="col-xs-1"><?= lang('Qty Real'); ?></th>
-                            <th class="col-xs-1"><?= lang('Qty Notes'); ?></th>
+                            <?php
+                                if (!empty($Admin))
+                                {
+                                    ?>
+                                        <th class="col-xs-1"><?= lang('Qty Real'); ?></th>
+                                    <?php
+                                }
+                            ?>
+                            <th class="col-xs-1"><?= lang('Notes'); ?></th>
+                            <th class="col-xs-1"><?= lang('Status'); ?></th>
                             <th class="col-xs-2"><?= lang('Created'); ?></th>
                             <th class="col-xs-2"><?= lang('actions'); ?></th>
                         </tr>
@@ -65,60 +81,163 @@
     </div>
 </div>
 <script type="text/javascript">
-    const delete_items = '<?= base_url('/delete/') ?>'
-    const edit_items = '<?= base_url('address_books/edit/') ?>'
+    const inbond = '<?= base_url('check_in/add?stock_opname_id=') ?>'
+    const outbond = '<?= base_url('checkout/add') ?>'
     var detail_table;
     const formAdd = document.getElementById('formAdd');
     const detail = '<?= base_url('stockopname/stockopname_detail/'); ?>';
+    const setAdmin = '<?= $Admin?>'
 
     $(document).ready(function() {
-      var table = $('#TTable').DataTable({
-          "order": [
-              [2, "desc"]
-          ],
+        if (setAdmin)
+        {        
+          var table = $('#TTable').DataTable({
+              "order": [
+                  [2, "desc"]
+              ],
 
-          "pageLength": <?= $Settings->rows_per_page; ?>,
-          "processing": true,
-          "serverSide": true,
-          'ajax': {
-              url: '<?= site_url('stockopname/stock_opname_json'); ?>',
-              type: 'POST',
-              "data": function(d) {d.<?= $this->security->get_csrf_token_name(); ?> = "<?= $this->security->get_csrf_hash() ?>"; console.log(d)}
-          },
-          "buttons": [],
-          "columns": [
-            {
-            	"render": (data, type, row, meta) => { return `${row[0]}`;}
-            },
-            {
-              "render": (data, type, row, meta) => {return `${row[1]}`;}
-            },
-            {
-              "render": (data, type, row, meta) => {return `${row[7]}`;}
-            },
-            {
-              "render": (data, type, row, meta) => {return row[3];}
-            },
-            {
-              "render": (data, type, row, meta) => {return row[4];}
-            },
-            {
-              "render": (data, type, row, meta) => {return row[5];}
-            },
-            {
-              "render": (data, type, row, meta) => {return row[6] === '0000-00-00 00:00:00' ? 'data belum diupdate' : hrld(row[6]);}
-            },
-            {
-                "render": (data, type, row, meta) => {
-                    return `    
-                        <!-- delete button -->
-                        <div class='btn-group' role='group'>
-                            <a href="${detail}${row[0]}" class="btn btn-info">Detail</a>
-                        </div>
-                    `;
+              "pageLength": <?= $Settings->rows_per_page; ?>,
+              "processing": true,
+              "serverSide": true,
+              'ajax': {
+                  url: '<?= site_url('stockopname/stock_opname_json'); ?>',
+                  type: 'POST',
+                  "data": function(d) {d.<?= $this->security->get_csrf_token_name(); ?> = "<?= $this->security->get_csrf_hash() ?>"; console.log(d)}
+              },
+              "buttons": [],
+              "columns": [
+                {
+                	"render": (data, type, row, meta) => { return `${row[0]}`;}
+                },
+                {
+                  "render": (data, type, row, meta) => {return `${row[1]}`;}
+                },
+                {
+                  "render": (data, type, row, meta) => {return `${row[7]}`;}
+                },
+                {
+                  "render": (data, type, row, meta) => {return row[3];}
+                },
+                {
+                  "render":(data, type, row, meta) => {return row[4];}
+                },
+                {
+                  "render": (data, type, row, meta) => {return row[5];}
+                },
+                {
+                  "render": (data, type, row, meta) => {
+                                                            let status = parseInt(row[8])
+                                                            return status == 1 ? 'Process' : (status == 2 ? 'Selesai' : (status == 3 ? 'Batal' : (status == 4 ? 'Selesai Outbond' : (status == 5 ? 'Selesai Inbond' : ''))))
+                                                        }
+                },
+                {
+                  "render": (data, type, row, meta) => {return row[6] === '0000-00-00 00:00:00' ? 'data belum diupdate' : hrld(row[6]);}
+                },
+                {
+                    "render": (data, type, row, meta) => {
+                        let qty           = parseInt(row[3]);
+                        let qtyReal       = parseInt(row[4]);
+                        let status        = parseInt(row[8]);
+                        let outbondInbond = '';
+
+                        if (status == 2)
+                        {
+                            outbondInbond = qty < qtyReal ? `
+                                        <div class='btn-group' role='group'>
+                                            <a href="${outbond}${row[0]}" class="btn btn-primary">New Outbond</a>
+                                        </div>` : (qty > qtyReal ? `
+                                        <div class='btn-group' role='group'>
+                                            <a href="${inbond}${row[0]}" class="btn btn-primary">New Inbond</a>
+                                        </div>` : null)
+
+                        }
+
+                        return `    
+                            <div style="display: flex; flex-direction: columns; justify-content: center;">
+                                <div class='btn-group' role='group'>
+                                    <a href="${detail}${row[0]}" class="btn btn-info">Detail</a>
+                                </div>&nbsp;
+                                ${outbondInbond}
+                            </div>
+                        `;
+                    }
                 }
-            }
-          ],
-      });
+            ],
+          });
+        }
+        else
+        {
+          var table = $('#TTable').DataTable({
+              "order": [
+                  [2, "desc"]
+              ],
+
+              "pageLength": <?= $Settings->rows_per_page; ?>,
+              "processing": true,
+              "serverSide": true,
+              'ajax': {
+                  url: '<?= site_url('stockopname/stock_opname_json'); ?>',
+                  type: 'POST',
+                  "data": function(d) {d.<?= $this->security->get_csrf_token_name(); ?> = "<?= $this->security->get_csrf_hash() ?>"; console.log(d)}
+              },
+              "buttons": [],
+              "columns": [
+                {
+                    "render": (data, type, row, meta) => { return `${row[0]}`;}
+                },
+                {
+                  "render": (data, type, row, meta) => {return `${row[1]}`;}
+                },
+                {
+                  "render": (data, type, row, meta) => {return `${row[7]}`;}
+                },
+                {
+                  "render": (data, type, row, meta) => {return row[3];}
+                },
+                {
+                  "render": (data, type, row, meta) => {return row[5];}
+                },
+                {
+                  "render": (data, type, row, meta) => {
+                                                            let status = parseInt(row[8])
+                                                            return status == 1 ? 'Process' : (status == 2 ? 'Selesai' : (status == 3 ? 'Batal' : (status == 4 ? 'Selesai Outbond' : (status == 5 ? 'Selesai Inbond' : ''))))
+                                                        }
+                },
+                {
+                  "render": (data, type, row, meta) => {return row[6] === '0000-00-00 00:00:00' ? 'data belum diupdate' : hrld(row[6]);}
+                },
+                {
+                    "render": (data, type, row, meta) => {
+                        let qty           = parseInt(row[3]);
+                        let qtyReal       = parseInt(row[4]);
+                        let status        = parseInt(row[8]);
+                        let outbondInbond = '';
+
+                        if (status == 2)
+                        {
+                            outbondInbond = qty < qtyReal ? `
+                                        <div class='btn-group' role='group'>
+                                            <a href="${outbond}${row[0]}" class="btn btn-primary">New Outbond</a>
+                                        </div>` : (qty > qtyReal ? `
+                                        <div class='btn-group' role='group'>
+                                            <a href="${inbond}${row[0]}" class="btn btn-primary">New Inbond</a>
+                                        </div>` : null)
+
+                        }
+
+                        return `    
+                            <div style="display: flex; flex-direction: columns; justify-content: center;">
+                                <div class='btn-group' role='group'>
+                                    <a href="${detail}${row[0]}" class="btn btn-info">Detail</a>
+                                </div>&nbsp;
+                                ${outbondInbond}
+                            </div>
+                        `;
+                    }
+                }
+            ],
+          });
+
+        }
     });
 </script>

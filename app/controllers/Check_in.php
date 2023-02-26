@@ -114,14 +114,13 @@ class Check_in extends MY_Controller
 
     public function add()
     {
-
         $this->form_validation->set_rules('reference', lang("reference"), 'trim|required|is_unique[check_in.reference]');
         $this->form_validation->set_rules('date', lang("date"), 'trim|required');
         $this->form_validation->set_rules('supplier', lang("supplier"), 'trim');
         if ($this->form_validation->run() == true) {
-
             $i = isset($_POST['product_id']) ? sizeof($_POST['product_id']) : 0;
             $items = [];
+            
             for ($r = 0; $r < $i; $r++) {
 
                 $item_id = $_POST['product_id'][$r];
@@ -189,16 +188,27 @@ class Check_in extends MY_Controller
 
                     if ($product != null) {
                         $this->db->update('item_warehouse', array('quantity' => ($product->quantity + $item['quantity'])), array('id' => $product->id, 'warehouse_id' => $item['warehouse_id']));
-                    } else {
+                        $item_warehouse_id = $product->id;
+                    }
+                    else
+                    {
                         $this->db->insert('item_warehouse', $data_item_warehouse);
                         $item_warehouse_id = $this->db->insert_id();
-                        $this->db->insert('check_in_items', [
-                        'check_in_id' => $check_in_id, 
-                        'item_warehouse_id' => $item_warehouse_id, 
-                        'quantity' => $item['quantity'],
-                        'warehouse_id' => $item['warehouse_id'],
-                        'item_id' => $item['item_id'],]);
                     }
+
+                    $this->db->insert('check_in_items', [
+                    'check_in_id'       => $check_in_id, 
+                    'item_warehouse_id' => $item_warehouse_id, 
+                    'quantity'          => $item['quantity'],
+                    'warehouse_id'      => $item['warehouse_id'],
+                    'item_id'           => $item['item_id'],]);
+                }
+
+                $stock_opname_id = !empty($_POST['stock_opname_id']) ? intval($_POST['stock_opname_id']) : 0;
+                if (!empty($stock_opname_id))
+                {
+                    $this->db->update('stock_opname', ['status' => 5], 'id = '.$stock_opname_id);
+                    $this->db->update('stock_opname_product', ['status' => 5], 'stock_opname_id = '.$stock_opname_id);
                 }
             }
 

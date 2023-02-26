@@ -64,7 +64,7 @@
                             <tr>
                               <th>Description</th>
                               <th>Qty</th>
-                              <th>Qty Real</th>
+                              <!-- <th>Qty Real</th> -->
                               <th style="width:25px;"><i class="fa fa-trash-o"></i></th>
                             </tr>
                           </thead>
@@ -193,7 +193,7 @@ function loadInItems() {
         var newTr = $('<tr id="' + row_no + '" class="' + item_id + '" data-item-id="' + item_id + '"></tr>');
         tr_html = '<td style="min-width:100px;"><input name="product_id[]" type="hidden" class="rid" value="' + product_id + '"><span class="sname" id="name_' + row_no + '">' + item_name + ' (' + item_code + ')</span></td>';
         tr_html += '<td style="padding:2px;"><input class="form-control input-sm kb-pad text-center rquantity" name="quantity[]" type="text" value="' + item_qty + '" data-id="' + row_no + '" data-item="' + item_id + '" id="quantity_' + row_no + '" onClick="this.select();" min="1"></td>';
-        tr_html += '<td style="padding-left:10px;">'+item_qty_total+'</td>';
+        // tr_html += '<td style="padding-left:10px;">'+item_qty_total+'</td>';
 
         tr_html += '<td class="text-center"><i class="fa fa-trash-o tip pointer stoutdel" id="' + row_no + '" title="Remove"></i></td>';
         newTr.html(tr_html);

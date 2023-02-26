@@ -38,7 +38,7 @@ class Stockopname extends MY_Controller
 						        </div>";
     }
     $links .= "</div>";
-    $this->datatables->select(
+    $q = $this->datatables->select(
     	'stock_opname.id,
     	stock_opname.stock_opname,
     	stock_opname.warehouse_id,
@@ -46,8 +46,10 @@ class Stockopname extends MY_Controller
     	stock_opname.qty_real_total,
     	stock_opname.notes,
     	stock_opname.created_at,
-    	warehouses.name'
+    	warehouses.name,
+    	stock_opname.status'
     )->from('stock_opname')->join('warehouses', 'warehouses.id = stock_opname.warehouse_id');
+    if (!$this->Admin) $q->where('warehouses.id', $this->session->userdata('warehouse_id'));
     $this->datatables->add_column('Actions', $links, 'id');
     echo $this->datatables->generate();
   }
@@ -191,16 +193,54 @@ class Stockopname extends MY_Controller
 
   public function stockopname_detail($stock_opname_id = 0)
   {
-  	$stockopname          = $this->stockopname_model->stockopname_by_id($stock_opname_id);
-  	$stockopname_products = $this->db->select('*')->from('stock_opname_product')->where('stock_opname_id', $stockopname['id'])->get()->result_array();
+  	$stockopname                   = $this->stockopname_model->stockopname_by_id($stock_opname_id);
+  	$stockopname['warehouse_name'] = $this->db->select('name')->from('warehouses')->where('id', $stockopname['warehouse_id'])->get()->row()->name;
+  	$stockopname_products          = $this->db->select('*')->from('stock_opname_product')->where('stock_opname_id', $stockopname['id'])->get()->result_array();
   	
   	foreach ($stockopname_products as $key => $value) $stockopname['products'][$key] = $value;
 
     $this->data['error']       = validation_errors() ? validation_errors() : $this->session->flashdata('error');
     $this->data['page_title']  = lang('Stockopname List');
-    $this->data['stockopname'] = $this->stockopname_model->stockopname_by_id($stock_opname_id);
+    $this->data['stockopname'] = $stockopname;
     $this->page_construct('stockopname/detail', $this->data);
     
     if(!empty($_SESSION['message'])){unset($_SESSION['message']); }
+  }
+
+  public function stockopname_detail_json()
+  {
+  	$stock_opname_id = !empty($_GET['stock_opname_id']) ? intval($_GET['stock_opname_id']) : 0;
+  	if (empty($stock_opname_id)) return false;
+   
+    if ($this->Admin) {
+        $links .= "<div class='btn-group' role='group'>
+					          <a class=\"btn btn-warning btn-xs tip\" title='" . lang("edit_item") . "' href='" . site_url('items/edit/$1') . "'>
+					          	<i class=\"fa fa-edit\"></i>
+					          </a>
+					        </div>";
+    }
+    $links .= "</div>";
+  
+  	$this->datatables->select('
+  		stock_opname_product.id,
+  		stock_opname_product.product_code,
+  		stock_opname_product.product_name,
+  		stock_opname_product.qty'
+  	)->from('stock_opname_product')->where('stock_opname_id', $stock_opname_id);
+  	$this->datatables->add_column('Actions', $links, 'id');
+  	echo $this->datatables->generate();
+    
+    // $this->datatables->select(
+    // 	'stock_opname.id,
+    // 	stock_opname.stock_opname,
+    // 	stock_opname.warehouse_id,
+    // 	stock_opname.qty,
+    // 	stock_opname.qty_real_total,
+    // 	stock_opname.notes,
+    // 	stock_opname.created_at,
+    // 	warehouses.name'
+    // )->from('stock_opname')->join('warehouses', 'warehouses.id = stock_opname.warehouse_id');
+    // $this->datatables->add_column('Actions', $links, 'id');
+    // echo $this->datatables->generate();
   }
 }
