@@ -13,6 +13,11 @@ class Address_books extends MY_Controller
         redirect('logout');
     }
 
+    if ($this->session->userdata('group_id') == 3) {
+        $this->session->set_flashdata('warning', lang('access_denied'));
+        redirect('welcome');
+    }
+
     $this->load->library(['form_validation', 'zend']);
     $this->load->model(['address_books_model']);
 		$this->load->helper('function_helper');

@@ -13,6 +13,11 @@ class Check_out extends MY_Controller {
             redirect('logout');
         }
 
+        if ($this->session->userdata('group_id') == 3) {
+            $this->session->set_flashdata('warning', lang('access_denied'));
+            redirect('welcome');
+        }
+
         $this->load->library('form_validation');
         $this->load->model('check_out_model');
         $this->digital_file_types = 'zip|psd|ai|rar|pdf|doc|docx|xls|xlsx|ppt|pptx|gif|jpg|jpeg|png|tif|txt';
@@ -146,15 +151,10 @@ class Check_out extends MY_Controller {
 
                 $photo = $this->upload->file_name;
                 $data['attachment'] = $photo;
-
             }
-
-           
-
         }
 
         if ( $this->form_validation->run() == true) {
-
             if($this->db->insert('check_out', $data)) {
                 $check_out_id = $this->db->insert_id();
                 foreach ($items as $item) {
@@ -172,7 +172,14 @@ class Check_out extends MY_Controller {
                         'item_id' => $item['item_id'],
                     ]);
                 }
+                $stock_opname_id = !empty($_POST['stock_opname_id']) ? intval($_POST['stock_opname_id']) : 0;
+                if (!empty($stock_opname_id))
+                {
+                    $this->db->update('stock_opname', ['status' => 4], 'id = '.$stock_opname_id);
+                    $this->db->update('stock_opname_product', ['status' => 4], 'stock_opname_id = '.$stock_opname_id);
+                }
             }
+
             $this->session->set_flashdata('message', lang("check_out_added"));
             redirect('check_out');
         } else {
@@ -545,4 +552,91 @@ class Check_out extends MY_Controller {
         $writer->save('php://output');
     }
 
+    public function check_out_view_v2()
+    {
+        if (isset($_POST['check_out_awb']))
+        {
+            if (!isset($_POST['order_id']))
+            {
+                $this->session->set_flashdata('warning', lang('Tidak ada Nomor AWB yang terscan'));
+                redirect('check_out/check_out_view_v2');
+            }
+
+            $data_post_check_out = [
+                'date'             => $_POST['date'],
+                'reference'        => $_POST['reference'],
+                'customer'         => empty($_POST['customer']) ? 0 : $_POST['customer'],
+                'created_by'       => $this->session->userdata('user_id'),
+                'note'             => $_POST['note'],
+            ];
+
+            $this->db->trans_begin();
+            if ($this->db->insert('check_out', $data_post_check_out))
+            {
+                $check_out_id = $this->db->insert_id();
+                foreach ($_POST['order_id'] as $key => $value)
+                {
+                    $product_id       = $_POST['product_id'][$key];
+                    $product_quantity = $_POST['product_quantity'][$key];
+                    $item_warehouse   = $this->db->select('id, quantity')->from('item_warehouse')->where('item_id', $product_id)->where('warehouse_id', $this->session->userdata('warehouse_id'))->get()->row_array();
+
+                    $this->db->update('item_warehouse', [
+                        'quantity' => ($product_quantity > $item_warehouse['quantity']) ? 0 : $item_warehouse['quantity'] - $product_quantity
+                    ],[
+                        'item_id'      => $product_id,
+                        'warehouse_id' => $this->session->userdata('warehouse_id')
+                    ]);
+
+                    $data_post[$key] = [
+                        'check_out_id'      => $check_out_id,
+                        'item_warehouse_id' => $item_warehouse['id'],
+                        'item_id'           => $product_id,
+                        'warehouse_id'      => $this->session->userdata('warehouse_id'),
+                        'quantity'          => $product_quantity
+                    ];
+                }
+            }
+
+            $this->db->insert_batch('check_out_items', $data_post);
+            if ($this->db->trans_status() === FALSE)
+            {
+                $this->db->trans_rollback();
+                return false;
+            }
+            $this->db->update('item_warehouse', [
+                'quantity' => ($item['quantity'] > $product->quantity) ? $product->quantity - $product->quantity : $product->quantity - $item['quantity'],
+            ], ['item_id' => $item['item_id'], 'warehouse_id' => $item['warehouse_id']]);
+
+            $this->db->trans_commit();
+            $this->session->set_flashdata('message', lang('Outbond successfully created'));
+            redirect('check_out');
+        }
+
+        $this->data['error'] = validation_errors() ? validation_errors() : $this->session->flashdata('error');
+        $this->data['page_title'] = lang('Add Outbond');
+        $this->data['customers'] = $this->check_out_model->getAllCustomers();
+        $this->data['warehouses'] = $this->check_out_model->getAllWarehouses();
+        $this->data['reference'] = $this->check_out_model->generateReference();
+        $this->page_construct('check_out/add_v2', $this->data);
+    }
+
+    public function suggestions_awb()
+    {
+        $awb   = $this->input->get('awb', TRUE);
+        $sales = $this->db->select('awb_no, id, product_id, product_quantity')->from('sales')->where('awb_no', $awb)->where('status', 'process packing')->where('status_packing', 'process packing')->get()->result_array();
+        if (!empty($sales))
+        {
+            $product_codes = array_column($sales, 'product_id');
+            $products      = $this->db->select('id, code, name')->from('items')->where_in('code', $product_codes)->get()->result_array();
+            foreach ($products as $key => $value) $product_with_code[$value['code']] = $value;
+            foreach ($sales as $key => $value)
+            {
+                $value['product_code'] = $value['product_id'];
+                $value['product_name'] = !empty($product_with_code[$value['product_code']]['name']) ? $product_with_code[$value['product_code']]['name'] : '';
+                $value['product_id']   = !empty($product_with_code[$value['product_code']]['id']) ? $product_with_code[$value['product_code']]['id'] : '';
+                $sales[$key]           = $value;
+            }
+            echo json_encode($sales);
+        }
+    }
 }

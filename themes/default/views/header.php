@@ -45,16 +45,18 @@
 							</ul>
 
 						</li> -->
-						<li class="dropdown">
-							<a data-toggle="dropdown" class="dropdown-toggle" href="#">
-								<i class="fa fa-barcode"></i> <span class="hidden-xs hidden-sm">&nbsp;&nbsp;<?= lang('Stock Opname'); ?></span>
-							</a>
-							<ul class="dropdown-menu extended pull-right">
-								<div class="notify-arrow"></div>
-								<li><a href="<?= site_url('stockopname'); ?>"><i class="fa fa-list"></i> <?= lang('Stock Opname'); ?></a></li>
-								<li><a href="<?= site_url('stockopname/stock_opname_add_view'); ?>"><i class="fa fa-plus"></i> <?= lang('Add Stock Opname'); ?></a></li>
-							</ul>
-						</li>
+						<?php if ($this->session->userdata('group_id') != 3): ?>						
+							<li class="dropdown">
+								<a data-toggle="dropdown" class="dropdown-toggle" href="#">
+									<i class="fa fa-barcode"></i> <span class="hidden-xs hidden-sm">&nbsp;&nbsp;<?= lang('Stock Opname'); ?></span>
+								</a>
+								<ul class="dropdown-menu extended pull-right">
+									<div class="notify-arrow"></div>
+									<li><a href="<?= site_url('stockopname'); ?>"><i class="fa fa-list"></i> <?= lang('Stock Opname'); ?></a></li>
+									<li><a href="<?= site_url('stockopname/stock_opname_add_view'); ?>"><i class="fa fa-plus"></i> <?= lang('Add Stock Opname'); ?></a></li>
+								</ul>
+							</li>
+						<?php endif ?>
 						<li class="dropdown">
 							<a data-toggle="dropdown" class="dropdown-toggle" href="#">
 								<i class="fa fa-barcode"></i> <span class="hidden-xs hidden-sm">&nbsp;&nbsp;<?= lang('items'); ?></span>
@@ -81,28 +83,31 @@
 								<a href="<?= site_url('items/alerts'); ?>"><i class="fa fa-bullhorn"></i><span class="badge bg-theme"><?= $qty_alert_num; ?></span></a>
 							</li>
 						<?php } ?>
-						<li class="dropdown">
-							<a data-toggle="dropdown" class="dropdown-toggle" href="#">
-								<i class="fa fa-arrow-circle-down"></i> <span class="hidden-xs hidden-sm"><?= lang('Inbound'); ?></span>
-							</a>
-							<ul class="dropdown-menu extended pull-right">
-								<div class="notify-arrow"></div>
-								<li><a href="<?= site_url('check_in'); ?>"><i class="fa fa-list"></i> <?= lang('Inbound'); ?></a></li>
-								<li><a href="<?= site_url('check_in/add'); ?>"><i class="fa fa-plus"></i> <?= lang('New Inbound'); ?></a></li>
-								<!--<li><a href="<?= site_url('check_in/add_by_csv'); ?>"><i class="fa fa-plus"></i> <?= lang('Inbound by CSV'); ?></a></li>-->
-							</ul>
-						</li>
-						<li class="dropdown">
-							<a data-toggle="dropdown" class="dropdown-toggle" href="#">
-								<i class="fa fa-arrow-circle-up"></i> <span class="hidden-xs hidden-sm"><?= lang('Outbond'); ?></span>
-							</a>
-							<ul class="dropdown-menu extended pull-right">
-								<div class="notify-arrow"></div>
-								<li><a href="<?= site_url('check_out'); ?>"><i class="fa fa-list"></i> <?= lang('List Outbond'); ?></a></li>
-								<li><a href="<?= site_url('check_out/add'); ?>"><i class="fa fa-plus"></i> <?= lang('New Outbond'); ?></a></li>
-								<!--<li><a href="<?= site_url('check_out/add_by_csv'); ?>"><i class="fa fa-plus"></i> <?= lang('Outbond by CSV'); ?></a></li>-->
-							</ul>
-						</li>
+						<?php if ($this->session->userdata('group_id') != 3): ?>						
+							<li class="dropdown">
+								<a data-toggle="dropdown" class="dropdown-toggle" href="#">
+									<i class="fa fa-arrow-circle-down"></i> <span class="hidden-xs hidden-sm"><?= lang('Inbound'); ?></span>
+								</a>
+								<ul class="dropdown-menu extended pull-right">
+									<div class="notify-arrow"></div>
+									<li><a href="<?= site_url('check_in'); ?>"><i class="fa fa-list"></i> <?= lang('Inbound'); ?></a></li>
+									<li><a href="<?= site_url('check_in/add'); ?>"><i class="fa fa-plus"></i> <?= lang('New Inbound'); ?></a></li>
+									<!--<li><a href="<?= site_url('check_in/add_by_csv'); ?>"><i class="fa fa-plus"></i> <?= lang('Inbound by CSV'); ?></a></li>-->
+								</ul>
+							</li>
+							<li class="dropdown">
+								<a data-toggle="dropdown" class="dropdown-toggle" href="#">
+									<i class="fa fa-arrow-circle-up"></i> <span class="hidden-xs hidden-sm"><?= lang('Outbond'); ?></span>
+								</a>
+								<ul class="dropdown-menu extended pull-right">
+									<div class="notify-arrow"></div>
+									<li><a href="<?= site_url('check_out'); ?>"><i class="fa fa-list"></i> <?= lang('List Outbond'); ?></a></li>
+									<!-- <li><a href="<?= site_url('check_out/add'); ?>"><i class="fa fa-plus"></i> <?= lang('New Outbond'); ?></a></li> -->
+									<li><a href="<?= site_url('check_out/check_out_view_v2'); ?>"><i class="fa fa-plus"></i> <?= lang('New Outbond'); ?></a></li>
+									<!--<li><a href="<?= site_url('check_out/add_by_csv'); ?>"><i class="fa fa-plus"></i> <?= lang('Outbond by CSV'); ?></a></li>-->
+								</ul>
+							</li>
+						<?php endif ?>
 						
 						<li class="dropdown">
 								<a data-toggle="dropdown" class="dropdown-toggle" href="#">
@@ -120,16 +125,18 @@
 								</li>
 								</ul>
 						</li>
-						<li class="dropdown">
-								<a data-toggle="dropdown" class="dropdown-toggle" href="#">
-									<i class="fa fa-file"></i> <span class="hidden-xs hidden-sm"><?= lang('Surat Jalan'); ?></span>
-								</a>
-								<ul class="dropdown-menu extended pull-right">
-									<div class="notify-arrow"></div>
-									<li><a href="<?= site_url('letter/travelIndex'); ?>"><i class="fa fa-car"></i> <?= lang('List Surat Jalan'); ?></a></li>
+						<?php if ($this->session->userdata('group_id') != 3): ?>						
+							<li class="dropdown">
+									<a data-toggle="dropdown" class="dropdown-toggle" href="#">
+										<i class="fa fa-file"></i> <span class="hidden-xs hidden-sm"><?= lang('Surat Jalan'); ?></span>
+									</a>
+									<ul class="dropdown-menu extended pull-right">
+										<div class="notify-arrow"></div>
+										<li><a href="<?= site_url('letter/travelIndex'); ?>"><i class="fa fa-car"></i> <?= lang('List Surat Jalan'); ?></a></li>
 
-								</ul>
-						</li>
+									</ul>
+							</li>
+						<?php endif ?>
 						<?php if ($Admin) { ?>
 							<li class="dropdown">
 								<a data-toggle="dropdown" class="dropdown-toggle" href="#">
@@ -184,21 +191,21 @@
 								</ul>
 							</li>
 							<!-- debugging -->
-						
-							
 						<?php } else { ?>
-							<li class="dropdown">
-								<a data-toggle="dropdown" class="dropdown-toggle" href="#">
-									<i class="fa fa-users"></i> <span class="hidden-xs hidden-sm"><?= lang('people'); ?></span>
-								</a>
-								<ul class="dropdown-menu extended pull-right">
-									<div class="notify-arrow"></div>
-									<li><a href="<?= site_url('customers'); ?>"><i class="fa fa-list"></i> <?= lang('list_customers'); ?></a></li>
-									<li><a href="<?= site_url('customers/add'); ?>"><i class="fa fa-plus"></i> <?= lang('add_customer'); ?></a></li>
-									<li><a href="<?= site_url('suppliers'); ?>"><i class="fa fa-list"></i> <?= lang('list_suppliers'); ?></a></li>
-									<li><a href="<?= site_url('suppliers/add'); ?>"><i class="fa fa-plus"></i> <?= lang('add_supplier'); ?></a></li>
-								</ul>
-							</li>
+							<?php if ($this->session->userdata('group_id') != 3): ?>							
+								<li class="dropdown">
+									<a data-toggle="dropdown" class="dropdown-toggle" href="#">
+										<i class="fa fa-users"></i> <span class="hidden-xs hidden-sm"><?= lang('people'); ?></span>
+									</a>
+									<ul class="dropdown-menu extended pull-right">
+										<div class="notify-arrow"></div>
+										<li><a href="<?= site_url('customers'); ?>"><i class="fa fa-list"></i> <?= lang('list_customers'); ?></a></li>
+										<li><a href="<?= site_url('customers/add'); ?>"><i class="fa fa-plus"></i> <?= lang('add_customer'); ?></a></li>
+										<li><a href="<?= site_url('suppliers'); ?>"><i class="fa fa-list"></i> <?= lang('list_suppliers'); ?></a></li>
+										<li><a href="<?= site_url('suppliers/add'); ?>"><i class="fa fa-plus"></i> <?= lang('add_supplier'); ?></a></li>
+									</ul>
+								</li>
+							<?php endif ?>
 						<?php } ?>
 						<li class="dropdown">
 							<a data-toggle="dropdown" class="logout dropdown-toggle" href="#">

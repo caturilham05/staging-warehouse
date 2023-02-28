@@ -125,7 +125,7 @@
         $('#group').change(function () {
             var group = $(this).val();
             // alert(group)
-            if (group == 2) {
+            if (group == 2 || group == 3) {
                 $('.warehouse').show();
                 // $("#group").setAttr('required');
             } else {

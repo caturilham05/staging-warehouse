@@ -82,7 +82,7 @@
 </div>
 <script type="text/javascript">
     const inbond = '<?= base_url('check_in/add?stock_opname_id=') ?>'
-    const outbond = '<?= base_url('checkout/add') ?>'
+    const outbond = '<?= base_url('check_out/add?stock_opname_id=') ?>'
     var detail_table;
     const formAdd = document.getElementById('formAdd');
     const detail = '<?= base_url('stockopname/stockopname_detail/'); ?>';

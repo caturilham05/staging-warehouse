@@ -9,6 +9,11 @@ class Suppliers extends MY_Controller
         if (!$this->loggedIn) {
             redirect('login');
         }
+
+        if ($this->session->userdata('group_id') == 3) {
+            $this->session->set_flashdata('warning', lang('access_denied'));
+            redirect('welcome');
+        }
         
         $this->load->library('form_validation');
         $this->load->model('suppliers_model');

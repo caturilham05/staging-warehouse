@@ -11,6 +11,11 @@ class Stockopname extends MY_Controller
         redirect('logout');
     }
 
+    if ($this->session->userdata('group_id') == 3) {
+        $this->session->set_flashdata('warning', lang('access_denied'));
+        redirect('welcome');
+    }
+
     $this->load->helper('function_helper');
     $this->load->library(['form_validation', 'pagination', 'datatables']);
     $this->load->model(['warehouses_model', 'items_model', 'stockopname_model', 'check_out_model']);

@@ -10,6 +10,11 @@ class Customers extends MY_Controller
             redirect('login');
         }
 
+        if ($this->session->userdata('group_id') == 3) {
+            $this->session->set_flashdata('warning', lang('access_denied'));
+            redirect('welcome');
+        }
+
         $this->load->library('form_validation');
         $this->load->model('customers_model');
     }

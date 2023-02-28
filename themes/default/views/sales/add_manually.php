@@ -432,7 +432,6 @@ $product_name_concat = !empty($sales) ? implode(',', $product_name_concat) : '';
             success:function(result){
                 if (result.status === true)
                 {
-                    console.log(result)
                     $('#insert_product').append(
                         '<div class="row">'+
                             '<div class="col-md-10">'+

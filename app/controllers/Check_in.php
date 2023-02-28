@@ -12,6 +12,11 @@ class Check_in extends MY_Controller
             redirect('logout');
         }
 
+        if ($this->session->userdata('group_id') == 3) {
+            $this->session->set_flashdata('warning', lang('access_denied'));
+            redirect('welcome');
+        }
+
         $this->load->library('form_validation');
         $this->load->model('check_in_model');
         $this->digital_file_types = 'zip|psd|ai|rar|pdf|doc|docx|xls|xlsx|ppt|pptx|gif|jpg|jpeg|png|tif|txt';
