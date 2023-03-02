@@ -587,6 +587,8 @@ class Check_out extends MY_Controller {
                         'warehouse_id' => $this->session->userdata('warehouse_id')
                     ]);
 
+                    $this->db->update('sales', ['status' => 'waiting delivery', 'status_packing' => 'waiting delivery'], ['id' => $value]);
+
                     $data_post[$key] = [
                         'check_out_id'      => $check_out_id,
                         'item_warehouse_id' => $item_warehouse['id'],

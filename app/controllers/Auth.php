@@ -424,18 +424,20 @@ function create_user() {
 
     if ($this->form_validation->run() == true) {
        
-        $username = strtolower($this->input->post('username'));
-        $email = strtolower($this->input->post('email'));
-        $password = $this->input->post('password');
-        $notify = $this->input->post('notify');
-        $warehouse_id = $this->input->post('warehouse_id') ?? null;
+        $username        = strtolower($this->input->post('username'));
+        $email           = strtolower($this->input->post('email'));
+        $password        = $this->input->post('password');
+        $notify          = $this->input->post('notify');
+        $warehouse_id    = $this->input->post('warehouse_id') ?? null;
+        $categories_id   = $this->input->post('categories_id') ?? null;
         $additional_data = array(
-            'first_name' => $this->input->post('first_name'),
-            'last_name' => $this->input->post('last_name'),
-            'phone' => $this->input->post('phone'),
-            'gender' => $this->input->post('gender'),
-            'group_id' => $this->input->post('group') ? $this->input->post('group') : '2',
-            'warehouse_id' => $warehouse_id,
+            'first_name'    => $this->input->post('first_name'),
+            'last_name'     => $this->input->post('last_name'),
+            'phone'         => $this->input->post('phone'),
+            'gender'        => $this->input->post('gender'),
+            'group_id'      => $this->input->post('group') ? $this->input->post('group') : '2',
+            'warehouse_id'  => empty($categories_id) ? $warehouse_id : NULL,
+            'categories_id' => $categories_id,
             );
         $active = $this->input->post('status');
 
@@ -448,8 +450,9 @@ function create_user() {
 
         $this->data['error'] = (validation_errors() ? validation_errors() : ($this->ion_auth->errors() ? $this->ion_auth->errors() : $this->session->flashdata('error')));
 
-        $this->data['groups'] = $this->ion_auth->groups()->result_array();
+        $this->data['groups']     = $this->ion_auth->groups()->result_array();
         $this->data['warehouses'] = $this->warehouses_model->fetch_warehouses();
+        $this->data['categories'] = $this->db->select('*')->from('categories')->get()->result_array();
         $this->data['page_title'] = lang('add_user');
         $this->page_construct('auth/create_user', $this->data);
     }

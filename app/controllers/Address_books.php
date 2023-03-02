@@ -27,7 +27,7 @@ class Address_books extends MY_Controller
   public function index()
   {
     $this->data['error']         = validation_errors() ? validation_errors() : $this->session->flashdata('error');
-    $this->data['address_books'] = $this->address_books_model->fetch_address_books();
+    $this->data['address_books'] = $this->address_books_model->address_books_origin_jne();
     $this->data['page_title']    = lang('Address Books');
     $this->page_construct('address_books/index', $this->data);
 
@@ -66,7 +66,7 @@ class Address_books extends MY_Controller
       }
       $links .= "</div>";
       $this->load->library('datatables');
-      $this->datatables->select('address_books.id, address_books.location_id, address_books.name, address_books.phone, address_books.address, address_books.created_at, address_books.updated_at,'.$this->db->dbprefix('master_locations').'.province_name, master_locations.city_name, master_locations.district_name, master_locations.subdistrict_name, master_locations.zip_code')->from('address_books')->join('master_locations', 'master_locations.id = address_books.location_id');
+      $this->datatables->select('address_books.id, address_books.location_id, address_books.name, address_books.phone, address_books.address, address_books.created_at, address_books.updated_at,'.$this->db->dbprefix('origin_code_jne').'.id AS origin_jne_id, origin_code_jne.origin_code, origin_code_jne.origin_name')->from('address_books')->join('origin_code_jne', 'origin_code_jne.id = address_books.location_id');
       $this->datatables->add_column("Actions", $links, "id");
       echo $this->datatables->generate();
   }
@@ -98,11 +98,6 @@ class Address_books extends MY_Controller
 				'rules' => 'trim|required|min_length[5]|max_length[13]|numeric|is_unique[address_books.phone]'
 			),
 			array(
-				'field' => 'zip_code',
-				'label' => 'Kode Pos',
-				'rules' => 'trim|required',
-			),
-			array(
 				'field' => 'address',
 				'label' => 'Alamat Lengkap',
 				'rules' => 'required'
@@ -123,6 +118,7 @@ class Address_books extends MY_Controller
 	    $this->data['page_title']      = lang('Add Address Books');
 	    $this->data['page']            = 'add';
 	    $this->data['row']             = $address_books;
+	    $this->data['origin_jne']      = $this->address_books_model->address_books_origin_jne();
 	    $this->data['master_location'] = $this->address_books_model->fetch_master_location();
 	    $this->page_construct('address_books/add', $this->data);
 		}
@@ -158,11 +154,11 @@ class Address_books extends MY_Controller
 				'label' => 'Nomor HP',
 				'rules' => 'trim|required|min_length[5]|max_length[13]|numeric'
 			),			
-			array(
-				'field' => 'zip_code',
-				'label' => 'Kode Pos',
-				'rules' => 'trim|required',
-			),
+			// array(
+			// 	'field' => 'zip_code',
+			// 	'label' => 'Kode Pos',
+			// 	'rules' => 'trim|required',
+			// ),
 			array(
 				'field' => 'address',
 				'label' => 'Alamat Lengkap',
@@ -184,6 +180,7 @@ class Address_books extends MY_Controller
 	    $this->data['page_title']      = lang('Edit Address Books');
 	    $this->data['page']            = 'edit';
 	    $this->data['data']            = $address_books;
+	    $this->data['origin_jne']      = $this->address_books_model->address_books_origin_jne();
 	    $this->data['master_location'] = $master_location;
 	    $this->page_construct('address_books/edit', $this->data);
 		}

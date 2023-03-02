@@ -32,11 +32,36 @@ $this->load->helper('function_helper');
                     </div>
                     <div class="col-md-4">
                         <div class="form-group">
-                            <?php echo lang('Kode Pos', 'Kode Pos'); ?>
+                            <?php echo lang('District', 'District'); ?>
                             <div class="controls">
-                                <?php echo form_input('zip_code', '', 'class="form-control" id="zip_code"'); ?>
-                                <small>masukkan kode pos untuk mengambil data di master location</small>
+                                <?php echo form_input('district', '', 'class="form-control" id="district"'); ?>
                             </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <?php echo lang('Subdistrict', 'Subdistrict'); ?>
+                            <div class="controls">
+                                <?php echo form_input('subdistrict', '', 'class="form-control" id="subdistrict"'); ?>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <?php echo lang('Zipcode', 'Zipcode'); ?>
+                            <div class="controls">
+                                <?php echo form_input('zipcode', '', 'class="form-control" id="zipcode"'); ?>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <?= lang('Pilih Kota', 'Pilih Kota'); ?>
+                            <?php 
+                            $origin_jne_data[''] = lang('Pilih Kota');
+                            foreach ($origin_jne as $value) $origin_jne_data[$value['id']] = sprintf('%s (%s)', $value['origin_name'], $value['origin_code']);
+                            ?>
+                            <?= form_dropdown('location_id', $origin_jne_data, set_value('location_id'), 'class="form-control tip" id="location_id" required="required"'); ?>
                         </div>
                     </div>
                     <div class="col-md-12">

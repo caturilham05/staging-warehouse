@@ -595,9 +595,8 @@ class Sales extends MY_Controller
                     $sales[$key]           = $value;
                 }
 
-
                 $this->data['error']                    = validation_errors() ? validation_errors() : $this->session->flashdata('error');
-                $this->data['warehouses']               = !empty($this->session->userdata('warehouse_id')) ? $this->warehouses_model->getWarehouseById($this->session->userdata('warehouse_id')) : $this->warehouses_model->fetch_warehouses();
+                $this->data['warehouses']               = !empty($this->session->userdata('warehouse_id')) ? $this->warehouses_model->getWarehouseById($this->session->userdata('warehouse_id')) : $this->warehouses_model->getWarehouseById($sales[0]['warehouse_id']);
                 $this->data['address_books']            = $this->address_books_model->fetch_address_books();
                 $this->data['items']                    = $this->items_model->fetch_items_all();
                 $this->data['page_title']               = lang('Sales Add Ekspedition Process');
@@ -794,9 +793,11 @@ class Sales extends MY_Controller
             {
                 if($key != 0)
                 {
-                    $address_book    = $this->address_books_model->address_books_by_id($value[6]);
-                    $master_location = $this->db->get_where('master_locations', ['id' => $address_book['location_id']], 1)->row_array();
-                    $list[]          = [
+                    $address_book              = $this->address_books_model->address_books_by_id($value[6]);
+                    $origin                    = $this->db->select('origin_name, origin_code')->from('origin_code_jne')->where('id', $address_book['location_id'])->get()->row_array();
+                    $master_location_city_name = $this->db->select('city_name')->from('master_locations')->where('tarif_code', $origin['origin_code'])->get()->row_array()['city_name'];
+
+                    $list[] = [
                         'warehouse_id'         => $this->warehouses_model->getWarehouseByName($value[0]),
                         'warehouse_name'       => $value[0],
                         'order_no'             => invoice_generate(),
@@ -809,9 +810,9 @@ class Sales extends MY_Controller
                         'shipper_name'         => $value[6],
                         'shipper_phone'        => $address_book['phone'],
                         'shipper_address'      => $address_book['address'],
-                        'shipper_city'         => $master_location['city_name'],
-                        'shipper_subdistrict'  => $master_location['subdistrict_name'],
-                        'shipper_zip_code'     => $master_location['zip_code'],
+                        'shipper_city'         => $origin['origin_name'],
+                        'shipper_subdistrict'  => $address_book['subdistrict'],
+                        'shipper_zip_code'     => $address_book['zipcode'],
                         'receiver_name'        => $value[7],
                         'receiver_phone'       => $value[8],
                         'receiver_address'     => $value[9],
@@ -875,6 +876,10 @@ class Sales extends MY_Controller
         {
             foreach ($_POST['order_no'] as $key => $value)
             {
+                $address_book              = $this->address_books_model->address_books_by_id($_POST['shipper_name'][$key]);
+                $origin                    = $this->db->select('origin_name, origin_code')->from('origin_code_jne')->where('id', $address_book['location_id'])->get()->row_array();
+                $master_location_city_name = $this->db->select('city_name')->from('master_locations')->where('tarif_code', $origin['origin_code'])->get()->row_array()['city_name'];
+
                 $datas[] = [
                     'order_no'             => $value,
                     'warehouse_id'         => $_POST['warehouse_id'][$key],
@@ -885,7 +890,7 @@ class Sales extends MY_Controller
                     'shipper_name'         => $_POST['shipper_name'][$key],
                     'shipper_phone'        => $_POST['shipper_phone'][$key],
                     'shipper_address'      => $_POST['shipper_address'][$key],
-                    'shipper_city'         => $_POST['shipper_city'][$key],
+                    'shipper_city'         => $master_location_city_name,
                     'shipper_subdistrict'  => $_POST['shipper_subdistrict'][$key],
                     'shipper_zip_code'     => $_POST['shipper_zip_code'][$key],
                     'receiver_name'        => $_POST['receiver_name'][$key],
@@ -1043,7 +1048,7 @@ class Sales extends MY_Controller
         $shipper_city  = !empty($_GET['shipper_city']) ? trim($_GET['shipper_city']) : '';
         $receiver_city = !empty($_GET['receiver_city']) ? trim($_GET['receiver_city']) : '';
         $weight        = !empty($_GET['weight']) ? intval($_GET['weight']) : 0;
-        
+
         if (empty($shipper_city) || empty($receiver_city) || empty($weight)) return false;
 
         $shipper_origin_code = $this->db->select('origin_code')->from('origin_code_jne')->where('origin_name', $shipper_city)->get()->row_array();

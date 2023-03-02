@@ -33,6 +33,9 @@ class Items extends MY_Controller
 
     public function get_items($alerts = NULL)
     {
+        $category_id = 0;
+        if ($this->session->userdata('group_id') == '3') $category_id = $this->db->select('*')->from('users')->where('id', $this->session->userdata('user_id'))->get()->row_array()['categories_id'];
+        
         $links = "<div class=''>";
         $links .= "<div class='btn-group btn-group-justified' role='group'><div class='btn-group' role='group'><a onclick=\"window.open('" . site_url('items/single_barcode/$1') . "', 'pos_popup', 'width=900,height=600,menubar=yes,scrollbars=yes,status=no,resizable=yes,screenx=0,screeny=0'); return false;\" href='#' title='" . lang('print_barcodes') . "' class='tip btn btn-default btn-xs'><i class='fa fa-print'></i></a></div> <div class='btn-group' role='group'><a onclick=\"window.open('" . site_url('items/single_label/$1') . "', 'pos_popup', 'width=900,height=600,menubar=yes,scrollbars=yes,status=no,resizable=yes,screenx=0,screeny=0'); return false;\" href='#' title='" . lang('print_labels') . "' class='tip btn btn-default btn-xs'><i class='fa fa-print'></i></a></div>";
         if ($this->Admin) {
@@ -48,6 +51,8 @@ class Items extends MY_Controller
             ->join('item_warehouse', 'item_warehouse.item_id=items.id', 'left')
             ->join('warehouses', 'warehouses.id=item_warehouse.warehouse_id', 'left')
             ->group_by('items.code', 'items.id');
+        
+        if ($this->session->userdata('group_id') == '3') $this->datatables->where('items.category_id', $category_id);
         if ($alerts) {
             $this->datatables->where('item_warehouse.quantity < alert_quantity', NULL, FALSE);
         }

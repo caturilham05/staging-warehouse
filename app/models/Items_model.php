@@ -125,11 +125,15 @@ class Items_model extends CI_Model {
           $this->db->limit($limit, $start);
         }
 
+        if ($this->session->userdata('group_id') == '3') $category_id = $this->db->select('*')->from('users')->where('id', $this->session->userdata('user_id'))->get()->row_array()['categories_id'];
+        
         $this->db->select([
             'id',
             'name',
             'code'
         ])->order_by('name', 'ASC');
+        if ($this->session->userdata('group_id') == '3') $this->db->where('category_id', $category_id);
+
         $q = $this->db->get("items");
         if ($q->num_rows() > 0) {
             foreach ($q->result() as $row) {

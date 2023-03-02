@@ -563,7 +563,7 @@ class Auth_model extends CI_Model {
 
         $this->trigger_events('extra_where');
 
-        $query = $this->db->select($this->identity_column . ', username, email, id, password, active, last_login, last_ip_address, avatar, gender, group_id, warehouse_id')
+        $query = $this->db->select($this->identity_column . ', username, email, id, password, active, last_login, last_ip_address, avatar, gender, group_id, warehouse_id, categories_id')
                 ->where($this->identity_column, $this->db->escape_str($identity))
                 ->limit(1)
                 ->get($this->tables['users']);

@@ -31,11 +31,12 @@ $this->load->helper('function_helper');
                     </div>
                     <div class="col-md-4">
                         <div class="form-group">
-                            <?php echo lang('Kode Pos', 'Kode Pos'); ?>
-                            <div class="controls">
-                                <?php echo form_input('zip_code', $master_location->zip_code, 'class="form-control" id="zip_code"'); ?>
-                                <small>masukkan kode pos untuk mengambil data di master location</small>
-                            </div>
+                            <?= lang('Pilih Kota', 'Pilih Kota'); ?>
+                            <?php 
+                            $origin_jne_data[''] = lang('Pilih Kota');
+                            foreach ($origin_jne as $value) $origin_jne_data[$value['id']] = sprintf('%s (%s)', $value['origin_name'], $value['origin_code']);
+                            ?>
+                            <?= form_dropdown('location_id', $origin_jne_data, set_value('location_id'), 'class="form-control tip" id="location_id" required="required"'); ?>
                         </div>
                     </div>
                     <div class="col-md-12">

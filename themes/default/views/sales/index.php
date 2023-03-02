@@ -113,7 +113,8 @@
                 <div class="col-xs-3 d-flex">
                     <select name="filter" id="filter" class="form-control">
                         <option value="">Filter Status Packing</option>
-                        <option value="not_sent">Belum Dikirim</option>
+                        <option value="waiting delivery">Menunggu Surat Jalan</option>
+                        <option value="process packing">Process Packing</option>
                         <option value="sent">Dikirim</option>
                     </select>
 
@@ -177,6 +178,8 @@
     const status_packing_url = '<?= base_url('sales/update_status_packing/'); ?>';
     const url_continue = '<?= base_url('sales/sales_add_manually_view?invoice='); ?>';
     const detail = '<?= base_url('sales/sales_detail_view?invoice='); ?>';
+    const thisAdmin = '<?= $Admin?>'
+    console.log(thisAdmin)
 
 
     $(document).ready(function() {
@@ -236,6 +239,10 @@
                         {
                             status = '<b>Process Packing</b>';
                         }
+                        else if (row[37] == 'waiting delivery')
+                        {
+                            status = '<b>Menunggu Surat Jalan</b>';
+                        }
                         else if (row[37] == null)
                         {
                             status = '<b>Belum Dikirim</b>';
@@ -246,7 +253,7 @@
                         }
                         return `         
                     </br>
-                    <span style="font-size:16;font-weight:bold;text-align:left;">WAREHOUSE ${row[38]}</span>
+                    <span style="font-size:16;font-weight:bold;text-align:left;">WAREHOUSE ${row[39]}<br><br> ${row[38]}</span>
                     <div style="background-color:#cce5f2; padding:8px; margin-left:4px;margin-right:4px;" class="text-left"> 
                     <p class="m-0 p-0 order_number"> 
                     <span style="font-size:16;font-weight:bold;">${row[1]}
@@ -307,23 +314,6 @@
                          `;
                     }
                 },
-                // {
-                //     //paket
-
-
-                //     "render": (data, type, row, meta) => {
-                //         let package_price = row[12] === null ? 0 : row[12];
-                //         return `         
-                //     <p class="order_number" style="font-size:14px;font-weight:bold;">${capitalizeFirstLetter(row[31])}
-                //     </p>
-                //     <p style="font-size:13px;">Berat (kg) : ${row[33]}</p>
-                //     <p style="font-size:13px;">Harga Paket : Rp${
-                //         package_price.toString().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1.")
-                //     }</p>
-                   
-                //          `;
-                //     }
-                // },
                 {
                     //kurir
                     "data": "awb_no",
@@ -341,23 +331,6 @@
                          `;
                     }
                 },
-                // {
-
-                //     "render": (data, type, row, meta) => {
-                //         let cod_value = row[16] === null ? 0 : row[16];
-                //         let package_price = row[12] === null ? 0 : row[12];
-                //         return `
-                        
-                        
-                //     <!-- jika cod_value != nol, maka cod_value dipake , otherwise package_price dipake -->
-                        
-                //         <p style="font-size:14px;font-weight:bold;"> ${cod_value != 0 ? 
-                //             //indonesia rupiah
-                //             'Rp' + cod_value.toString().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1.") :
-                //             'Rp' + package_price.toString().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1.")} </p>
-                //          `;
-                //     }
-                // },
                 {
                     "render": function(data, type, row, meta) {
                         let invoice = row[1];
@@ -367,32 +340,31 @@
                                     <a href="${detail + encodeURIComponent(invoice)}" class="btn btn-info">Detail</a>
                                 </div>&nbsp;
                                 ${
-                                    row[37] === 'process' ? `
+                                    row[37] === 'process' && thisAdmin == 1 ? `
                                     <div class='btn-group' role='group'>
                                         <a href="${url_continue + encodeURIComponent(invoice)}" class="btn btn-primary">Continue</a>
                                     </div>&nbsp;`
                                     :
                                     ''
                                 }
-                                <div class='btn-group' role='group'>
-                                    <a href='#' class='btn btn-danger  tip po'
-                                        data-content="<p>Are you sure?</p><a class='btn btn-danger po-delete' 
-                                        href='${delete_url}${row[0]}'>
-                                        I'm Sure</a>
-                                        <button class='btn po-close'>No</button>" rel='popover'>
-                                        <span>Delete</span>
-                                    </a>
-                                </div>
+                                ${
+                                    row[37] !== 'sent' && thisAdmin == 1 ? `
+                                        <div class='btn-group' role='group'>
+                                            <a href='#' class='btn btn-danger  tip po'
+                                                data-content="<p>Are you sure?</p><a class='btn btn-danger po-delete' 
+                                                href='${delete_url}${row[0]}'>
+                                                I'm Sure</a>
+                                                <button class='btn po-close'>No</button>" rel='popover'>
+                                                <span>Delete</span>
+                                            </a>
+                                        </div>
+                                    ` : ''
+                                }
                             </div>
-                            `;
+                        `;
                     }
                 }
             ],
-            // 'fnRowCallback': function(nRow, aData) {
-            //     nRow.id = aData.id;
-            //     nRow.className = "item_link";
-            //     return nRow;
-            // }
         });
 
         $('#filter').on('change', function() {

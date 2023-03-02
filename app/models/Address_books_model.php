@@ -89,12 +89,16 @@ class Address_books_model extends CI_Model
     public function add_address_books($post)
     {
         $this->load->helper('function_helper');
-        $master_location = $this->fetch_master_location_zip_code($post['zip_code']);
-        $params          = [
-            'location_id' => $master_location->id,
+        // $master_location = $this->fetch_master_location_zip_code($post['zip_code']);
+        
+        $params = [
+            'location_id' => $post['location_id'],
             'name'        => $post['name'],
             'phone'       => $post['phone'],
             'address'     => $post['address'],
+            'district'    => $post['district'],
+            'subdistrict' => $post['subdistrict'],
+            'zipcode'     => $post['zipcode'],
         ];
 
         $insert = $this->db->insert('address_books', $params);
@@ -107,12 +111,15 @@ class Address_books_model extends CI_Model
 
     public function edit_address_books($post, $id)
     {
-        $master_location = $this->fetch_master_location_zip_code($post['zip_code']);
+        // $master_location = $this->fetch_master_location_zip_code($post['zip_code']);
         $params          = [
-            'location_id' => $master_location->id,
+            'location_id' => $post['location_id'],
             'name'        => $post['name'],
             'phone'       => $post['phone'],
             'address'     => $post['address'],
+            'district'    => $post['district'],
+            'subdistrict' => $post['subdistrict'],
+            'zipcode'     => $post['zipcode'],
         ];
 
         $this->db->where('id', $id);
@@ -135,6 +142,13 @@ class Address_books_model extends CI_Model
             return $q->row_array();
         }
         return FALSE;
+    }
+
+    public function address_books_origin_jne()
+    {
+        $origin_jne = $this->db->select('id, origin_code, origin_name')->from('origin_code_jne')->get()->result_array();
+        if (empty($origin_jne)) return false;
+        return $origin_jne;
     }
 }
 

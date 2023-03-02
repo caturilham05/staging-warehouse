@@ -103,6 +103,21 @@
                             ?> 
                         </div>
                     </div>
+                    
+                    <div class="col-md-4 categories">
+                        <div class="form-group">
+                            <?= lang('Category', 'Category'); ?>
+                            <?php
+                            $opt_cat = [];
+                            $opt_cat[''] = 'Select Category';
+                            foreach ($categories as $category) {
+                                $opt_cat[$category['id']] = $category['name'];
+                            }
+                            echo form_dropdown('categories_id', $opt_cat, (isset($_POST['categories_id']) ? $_POST['categories_id'] : ''), 'id="categories" data-placeholder="' . lang("select") . ' ' . lang("Category") . '"class="form-control input-tip select" style="width:100%;"');
+                            ?> 
+                        </div>
+                    </div>
+                    
                     <div class="clearfix"></div>
 
                     <div class="col-md-12">
@@ -121,16 +136,25 @@
 <script>
     $(document).ready(function () {
         $('.warehouse').hide()
+        $('.categories').hide()
         
         $('#group').change(function () {
             var group = $(this).val();
-            // alert(group)
-            if (group == 2 || group == 3) {
+            if (group == 2) {
                 $('.warehouse').show();
                 // $("#group").setAttr('required');
             } else {
                 $('.warehouse').hide();
                 // $("#group").removeAttr('required');
+            }
+
+            if (group == 3)
+            {
+                $('.categories').show();
+            }
+            else
+            {
+                $('.categories').hide();
             }
         });
     });

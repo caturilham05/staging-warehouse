@@ -262,9 +262,12 @@ class Sales_model extends CI_Model
             {
                 $address_book = $this->db->get_where('address_books', ['id' => $post['shipper_id']], 1)->row_array();
                 if (empty($address_book)) return false;
-
-                $master_location = $this->db->get_where('master_locations', ['id' => $address_book['location_id']], 1)->row_array();
-                if (empty($master_location)) return false;
+                
+                $origin = $this->db->select('origin_name, origin_code')->from('origin_code_jne')->where('id', $address_book['location_id'])->get()->row_array();
+                if (empty($origin)) return false;
+                $master_location_city_name = $this->db->select('city_name')->from('master_locations')->where('tarif_code', $origin['origin_code'])->get()->row_array()['city_name'];
+                // $master_location = $this->db->get_where('master_locations', ['id' => $address_book['location_id']], 1)->row_array();
+                // if (empty($master_location)) return false;
 
                 $sales            = $this->getSalesbyInvoice($post['order_no']);
                 $product_quantity = 0;
@@ -273,7 +276,6 @@ class Sales_model extends CI_Model
                 {
                     $product_quantity += $sales[$key]['product_quantity'];
                 }
-
 
                 $params_awb_cod_flag   = '';
                 $params_awb_cod_amount = '';
@@ -286,9 +288,9 @@ class Sales_model extends CI_Model
                 $create_awb = $this->api_jne_create_waybill_model(
                     $address_book['name'],
                     $address_book['address'],
-                    $master_location['city_name'],
-                    $master_location['zip_code'],
-                    $master_location['city_name'],
+                    $master_location_city_name,
+                    $address_book['zipcode'],
+                    $master_location_city_name,
                     $address_book['name'],
                     $address_book['phone'],
                     $post['receiver_name'],
@@ -298,7 +300,7 @@ class Sales_model extends CI_Model
                     $post['receiver_city'],
                     $post['receiver_name'],
                     $post['receiver_phone'],
-                    $master_location['city_name'],
+                    $origin['origin_name'],
                     $post['service'],
                     $post['receiver_city'],
                     $sales[0]['weight'],
@@ -325,9 +327,9 @@ class Sales_model extends CI_Model
                         'shipper_name'         => $address_book['name'],
                         'shipper_phone'        => $address_book['phone'],
                         'shipper_address'      => $address_book['address'],
-                        'shipper_city'         => $master_location['city_name'],
-                        'shipper_subdistrict'  => $master_location['district_name'],
-                        'shipper_zip_code'     => $master_location['zip_code'],
+                        'shipper_city'         => $master_location_city_name,
+                        'shipper_subdistrict'  => $address_book['district'],
+                        'shipper_zip_code'     => $address_book['zipcode'],
                         'courier'              => $post['courier'],
                         'service'              => $post['service'],
                         'shipping_price'       => $post['shipping_price'],

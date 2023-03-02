@@ -90,7 +90,7 @@
               "render": (data, type, row, meta) => {return `${row[3]}`;}
             },
             {
-              "render": (data, type, row, meta) => {return `${row[10]}` + ", " + `${row[9]}` + ", " + `${row[8]}` + " - " + `${row[7]}` + " (" + `${row[11]}` + ")";}
+              "render": (data, type, row, meta) => {return `${row[4]}` + " - " + `${row[9]}`;}
             },
             {
               "render": (data, type, row, meta) => {return hrld(row[5]);}

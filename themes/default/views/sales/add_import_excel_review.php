@@ -284,71 +284,15 @@
 				},
 				dataType: "json",
 				success:function(result){
+						console.log(result)
 					if (result.length !== 0)
 					{
-						// let attendanceFilter = result.attendances.filter((v) => v.status == attendance_status);
 						let servicePrice = result.filter((v_result) => v_result.service_display == service ? v_result.price : 0);
-						console.log(servicePrice)
 						$('#shipping_price_' + v.order_key).val(servicePrice == 0 ? 0 : servicePrice[0].price)
 						$('#_' + v.order_key).val(servicePrice == 0 ? 0 : servicePrice[0].price)
-
-						// result.map((v_result) => {
-						// 	$('#service_shipping_price_' + v.order_key).append('<option value="'+ v_result.service_display +' | '+ v_result.price +'">'+v_result.service_display+' | '+v_result.price+'</option>')
-						// 	$('#service_shipping_price_' + v.order_key).on('change', function(){
-						// 		let service_shipping_price         = $(this).val();
-						// 		let service_shipping_price_explode = service_shipping_price.split(' | ')
-						// 		// let pattern_service             = /[A-Za-z]+/i
-						// 		// let result_service              = service_shipping_price.match(pattern_service)
-						// 		// let pattern_price               = /[0-9]+/i
-						// 		// let result_price                = service_shipping_price.match(pattern_price)
-						// 		$('#service_' + v.order_key).val(service_shipping_price_explode[0])
-						// 		$('#shipping_price_' + v.order_key).val(service_shipping_price_explode[1])
-						// 	})
-						// })
 					}
 				}
 			})
 		})
-
-		// orderKeyParse.map((v) => {
-		// 	$('#shipper_city_code_' + v.order_key).on('change', function(e){
-		// 		getShipperCityCode = $(this).val();
-		// 		console.log(getShipperCityCode)
-		// 	})
-
-		// 	$('#receiver_destination_' + v.order_key).on('change', function(){
-		// 		getDestination           = $(this).val()
-		// 		getShipperCityCodeChange = $('#shipper_city_code_' + v.order_key).val();
-		// 		getWeight                = v.weight;
-				// $.ajax({
-				// 	url: '<?php echo site_url('sales/api_jne_price_json')?>',
-				// 	type:'GET',
-				// 	data: {
-				// 		"origin": getShipperCityCodeChange,
-				// 		"destination": getDestination,
-				// 		"weight": getWeight
-				// 	},
-				// 	dataType: "json",
-				// 	success:function(result){
-				// 		if (result.length !== 0)
-				// 		{
-				// 			result.map((v_result) => {
-				// 				$('#service_shipping_price_' + v.order_key).append('<option value="'+ v_result.service_display +' | '+ v_result.price +'">'+v_result.service_display+' | '+v_result.price+'</option>')
-				// 				$('#service_shipping_price_' + v.order_key).on('change', function(){
-				// 					let service_shipping_price         = $(this).val();
-				// 					let service_shipping_price_explode = service_shipping_price.split(' | ')
-				// 					// let pattern_service             = /[A-Za-z]+/i
-				// 					// let result_service              = service_shipping_price.match(pattern_service)
-				// 					// let pattern_price               = /[0-9]+/i
-				// 					// let result_price                = service_shipping_price.match(pattern_price)
-				// 					$('#service_' + v.order_key).val(service_shipping_price_explode[0])
-				// 					$('#shipping_price_' + v.order_key).val(service_shipping_price_explode[1])
-				// 				})
-				// 			})
-				// 		}
-				// 	}
-				// })
-		// 	})
-		// })
 	})
 </script>
