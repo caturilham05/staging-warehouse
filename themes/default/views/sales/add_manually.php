@@ -1,9 +1,8 @@
 <?php (defined('BASEPATH')) or exit('No direct script access allowed');
 $this->load->helper('function_helper');
-$order_id            = !empty($sales) ? json_encode(array_column($sales, 'id')) : [];
+// $order_id            = !empty($sales) ? json_encode(array_column($sales, 'id')) : [];
 $product_name_concat = !empty($sales) ? array_column($sales, 'product_name') : [];
 $product_name_concat = !empty($sales) ? implode(',', $product_name_concat) : '';
-
 ?>
 <?php
     if (empty($page_ekspedition_process))
@@ -62,9 +61,12 @@ $product_name_concat = !empty($sales) ? implode(',', $product_name_concat) : '';
                                             <?= lang('Shipper Origin Address', 'Shipper Origin Address'); ?>
                                             <?php 
                                             $jne_origin_data[''] = lang('Select Shippier Origin Address');
-                                            foreach ($jne_origin['origin'] as $value) $jne_origin_data[$value['City_Code']] = $value['City_Name'].' (Code: '.$value['City_Code'].')';
+                                            if (!empty($jne_origin))
+                                            {
+                                                foreach ($jne_origin['origin'] as $value) $jne_origin_data[$value['City_Code']] = $value['City_Name'].' (Code: '.$value['City_Code'].')';
+                                            }
                                             ?>
-                                            <?= form_dropdown('shipper_city_code', $jne_origin_data, set_value('shipper_city_code'), 'class="form-control tip" id="shipper_city_code" required="required"'); ?>
+                                            <?= form_dropdown('shipper_city_code', @$jne_origin_data, set_value('shipper_city_code'), 'class="form-control tip" id="shipper_city_code" required="required"'); ?>
                                         </div>
                                     </div>
 
@@ -75,9 +77,12 @@ $product_name_concat = !empty($sales) ? implode(',', $product_name_concat) : '';
                                             <?= lang('Receiver Destination', 'Receiver Destination'); ?>
                                             <?php 
                                             $jne_destination_data[''] = lang('Receiver Destination');
-                                            foreach ($jne_destination['destination'] as $value) $jne_destination_data[$value['City_Code']] = $value['City_Name'].' (Code: '.$value['City_Code'].')';
+                                            if (!empty($jne_destination))
+                                            {
+                                                foreach ($jne_destination['destination'] as $value) $jne_destination_data[$value['City_Code']] = $value['City_Name'].' (Code: '.$value['City_Code'].')';
+                                            }
                                             ?>
-                                            <?= form_dropdown('receiver_destination', $jne_destination_data, set_value('receiver_destination'), 'class="form-control tip" id="receiver_destination" required="required"'); ?>
+                                            <?= form_dropdown('receiver_destination', @$jne_destination_data, set_value('receiver_destination'), 'class="form-control tip" id="receiver_destination" required="required"'); ?>
                                         </div>
                                     </div>
                                     <div class="col-md-2">
@@ -453,8 +458,6 @@ $product_name_concat = !empty($sales) ? implode(',', $product_name_concat) : '';
         });
     })
 
-    let orderId      = '<?= $order_id?>';
-    let orderIdParse = JSON.parse(orderId);
     $('#shipping_price_text').on('change', function(){
         let value           = $(this).val();
         let pattern_service = /service\:\s(.*?)\s\|/i

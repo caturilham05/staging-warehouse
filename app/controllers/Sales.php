@@ -905,8 +905,8 @@ class Sales extends MY_Controller
                     'shipping_note'        => $_POST['shipping_note'][$key],
                     'product_id'           => $_POST['product_id'][$key],
                     'product_quantity'     => $_POST['product_quantity'][$key],
-                    'shipper_city_code'    => $_POST['shipper_city_code'][$key],
-                    'receiver_destination' => $_POST['receiver_destination'][$key],
+                    'shipper_city_code'    => @$_POST['shipper_city_code'][$key],
+                    'receiver_destination' => @$_POST['receiver_destination'][$key],
                     'service'              => $_POST['service'][$key],
                     'shipping_price'       => $_POST['shipping_price'][$key],
                     'status'               => 'process packing',
@@ -982,12 +982,12 @@ class Sales extends MY_Controller
     /*api JNE*/
     public function api_jne_destination()
     {
-        $jne_url      = 'https://apiv2.jne.co.id:10205/insert/getdestination';
+        $jne_url      = 'https://apiv2.jne.co.id:30000/insert/getdestination';
         $jne_username = $this->config->item('jne_username');
         $jne_api_key  = $this->config->item('jne_api_key');
         $header       = [
             "Content-Type: application/x-www-form-urlencoded",
-            "User-Agent: ".$_SERVER['HTTP_USER_AGENT'],
+            // "User-Agent: ".$_SERVER['HTTP_USER_AGENT'],
         ];
 
         $body = sprintf("username=%s&api_key=%s", $jne_username, $jne_api_key);
@@ -1002,7 +1002,7 @@ class Sales extends MY_Controller
 
     public function api_jne_origin()
     {
-        $jne_url      = 'https://apiv2.jne.co.id:10205/insert/getorigin';
+        $jne_url      = 'https://apiv2.jne.co.id:30000/insert/getorigin';
         $jne_username = $this->config->item('jne_username');
         $jne_api_key  = $this->config->item('jne_api_key');
         $header       = [
@@ -1025,7 +1025,7 @@ class Sales extends MY_Controller
         if (empty($origin)) return false;
         if (empty($destination)) return false;
         if (empty($weight)) return false;
-        $jne_url      = 'https://apiv2.jne.co.id:10205/tracing/api/pricedev';
+        $jne_url      = 'https://apiv2.jne.co.id:30000/tracing/api/pricedev';
         $jne_username = $this->config->item('jne_username');
         $jne_api_key  = $this->config->item('jne_api_key');
         $header       = [
@@ -1093,7 +1093,7 @@ class Sales extends MY_Controller
         $BOOK_CODE       = random_int(0000000000000000, 9999999999999999);
         $SHIPPER_ZIP     = empty($SHIPPER_ZIP) ? 1 : $SHIPPER_ZIP;
         // $jne_url      = 'http://apiv2.jne.co.id:10102/job/direct';
-        $jne_url         = 'https://apiv2.jne.co.id:10206/job/direct';
+        $jne_url         = 'https://apiv2.jne.co.id:30000/job/direct';
         $jne_username    = $this->config->item('jne_username');
         $jne_api_key     = $this->config->item('jne_api_key');
         // $jne_username = 'TESTAPI';

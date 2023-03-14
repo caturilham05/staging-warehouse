@@ -239,7 +239,7 @@ class Sales_model extends CI_Model
         $SHIPPER_ADDR1   = strlen($SHIPPER_ADDR1) > 30 ? $SHIPPER_CITY : $SHIPPER_ADDR1;
         $RECEIVER_ADDR1  = strlen($RECEIVER_ADDR1) > 30 ? $RECEIVER_CITY : $RECEIVER_ADDR1;
         // $jne_url      = 'http://apiv2.jne.co.id:10102/job/direct';
-        $jne_url         = 'https://apiv2.jne.co.id:10206/job/direct';
+        $jne_url         = 'https://apiv2.jne.co.id:30000/job/direct';
         $jne_username    = $this->config->item('jne_username');
         $jne_api_key     = $this->config->item('jne_api_key');
         // $jne_username = 'TESTAPI';

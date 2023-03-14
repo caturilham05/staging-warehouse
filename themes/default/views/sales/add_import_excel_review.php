@@ -202,7 +202,7 @@
 	      						</tr>
 	      					<?php
 	      				}
-	      				$get_key_encode = json_encode($get_key);
+	      				$get_key_encode = json_encode(@$get_key);
       				?>
       			</tbody>
       		</table>
@@ -252,7 +252,7 @@
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalLabel"><?php echo $value['order_no']?></h5>
+        <h5 class="modal-title" id="exampleModalLabel"><?php echo @$value['order_no']?></h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>

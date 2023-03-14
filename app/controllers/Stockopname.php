@@ -42,7 +42,7 @@ class Stockopname extends MY_Controller
 						          </a>
 						        </div>";
     }
-    $links .= "</div>";
+    // $links .= "</div>";
     $q = $this->datatables->select(
     	'stock_opname.id,
     	stock_opname.stock_opname,
@@ -55,7 +55,7 @@ class Stockopname extends MY_Controller
     	stock_opname.status'
     )->from('stock_opname')->join('warehouses', 'warehouses.id = stock_opname.warehouse_id');
     if (!$this->Admin) $q->where('warehouses.id', $this->session->userdata('warehouse_id'));
-    $this->datatables->add_column('Actions', $links, 'id');
+    $this->datatables->add_column('Actions', 'id');
     echo $this->datatables->generate();
   }
 

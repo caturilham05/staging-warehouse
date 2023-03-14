@@ -1,4 +1,4 @@
-<?php (defined('BASEPATH')) OR exit('No direct script access allowed');?>
+<?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
 <div class="">
     <h3><i class="fa fa-arrow-circle-up"></i> <?= $page_title; ?></h3>
     <p><?= lang('enter_info'); ?></p>
@@ -13,7 +13,7 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <?= lang('date', 'date'); ?>
-                                <input type="hidden" name="stock_opname_id" value="<?= $stock_opname_id?>">
+                                <input type="hidden" name="stock_opname_id" value="<?= @$stock_opname_id?>">
                                 <?= form_input('date', set_value('date', date('Y-m-d H:i')), 'class="form-control tip datetime" id="date"  required="required"'); ?>
                             </div>
                         </div>
